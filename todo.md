@@ -1,6 +1,6 @@
 # Insurtech News Tracker Web - TODO
 
-## Features to Implement
+## Features Implemented
 
 - [x] Database schema for storing news articles and reports
 - [x] Backend API to integrate existing Python news collection logic
@@ -9,7 +9,17 @@
 - [x] Professional table-based email template rendering on web
 - [x] Display AI-powered analysis and insights
 - [x] Categorized news view by topic
-- [ ] Scheduled job to run news collection daily at 9:00 AM SGT
-- [ ] Email delivery integration (keep existing email functionality)
-- [ ] Cache management for 6-hour news cache
+- [x] Scheduled job to run news collection daily at 9:00 AM SGT
+- [x] Email delivery integration (using existing Python email functionality)
+- [x] Manual collection trigger via web UI
+
+## Future Enhancements (Optional)
+
 - [ ] Admin dashboard for managing collection settings
+- [ ] User authentication for personalized reports
+- [ ] Export reports as PDF
+- [ ] Email subscription management
+- [ ] Custom search query builder
+- [ ] RSS feed management UI
+- [ ] Analytics dashboard for article trends
+- [ ] Mobile app version
