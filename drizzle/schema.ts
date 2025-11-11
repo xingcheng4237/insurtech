@@ -25,4 +25,33 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+// News articles table
+export const articles = mysqlTable("articles", {
+  id: int("id").autoincrement().primaryKey(),
+  title: text("title").notNull(),
+  url: varchar("url", { length: 1024 }).notNull(),
+  source: varchar("source", { length: 256 }),
+  publishedDate: varchar("publishedDate", { length: 128 }),
+  snippet: text("snippet"),
+  category: varchar("category", { length: 128 }),
+  region: varchar("region", { length: 64 }),
+  collectedAt: timestamp("collectedAt").defaultNow().notNull(),
+});
+
+export type Article = typeof articles.$inferSelect;
+export type InsertArticle = typeof articles.$inferInsert;
+
+// Daily reports table
+export const reports = mysqlTable("reports", {
+  id: int("id").autoincrement().primaryKey(),
+  reportDate: timestamp("reportDate").notNull(),
+  htmlContent: text("htmlContent").notNull(),
+  aiAnalysis: text("aiAnalysis"),
+  articleCount: int("articleCount").default(0).notNull(),
+  categories: text("categories"), // JSON string of categories
+  emailSent: int("emailSent").default(0).notNull(), // 0 = false, 1 = true
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Report = typeof reports.$inferSelect;
+export type InsertReport = typeof reports.$inferInsert;

@@ -17,12 +17,93 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // News collection and reports
+  news: router({
+    // Trigger manual news collection
+    collect: publicProcedure.mutation(async () => {
+      const { NewsCollector } = await import('./newsCollector');
+      const { generateHTMLReport } = await import('./reportGenerator');
+      const { saveArticles, saveReport } = await import('./db');
+      
+      const collector = new NewsCollector();
+      const result = await collector.collectNews();
+      
+      if (result.articles.length === 0) {
+        return { success: false, message: 'No articles collected' };
+      }
+      
+      // Generate AI analysis
+      const aiAnalysis = await collector.generateAIAnalysis(result.articles);
+      
+      // Categorize articles
+      const categorizedNews = collector.categorizeArticles(result.articles);
+      
+      // Generate HTML report
+      const htmlContent = generateHTMLReport({
+        articles: result.articles,
+        aiAnalysis,
+        categorizedNews,
+        stats: {
+          articleCount: result.articles.length,
+          categoryCount: Object.keys(categorizedNews).length,
+          regions: 11,
+        },
+      });
+      
+      // Save to database
+      await saveArticles(result.articles.map(a => ({
+        title: a.title,
+        url: a.url,
+        source: a.source,
+        publishedDate: a.publishedDate,
+        snippet: a.snippet,
+        category: a.category,
+        region: a.region,
+      })));
+      
+      await saveReport({
+        reportDate: new Date(),
+        htmlContent,
+        aiAnalysis,
+        articleCount: result.articles.length,
+        categories: JSON.stringify(Object.keys(categorizedNews)),
+        emailSent: 0,
+      });
+      
+      return {
+        success: true,
+        articleCount: result.articles.length,
+        collectionTime: result.collectionTime,
+      };
+    }),
+    
+    // Get latest report
+    latest: publicProcedure.query(async () => {
+      const { getLatestReport } = await import('./db');
+      return await getLatestReport();
+    }),
+    
+    // Get all reports
+    list: publicProcedure.query(async () => {
+      const { getAllReports } = await import('./db');
+      return await getAllReports();
+    }),
+    
+    // Get report by ID
+    byId: publicProcedure.input((input: unknown) => {
+      if (typeof input !== 'object' || input === null || !('id' in input)) {
+        throw new Error('Invalid input');
+      }
+      const { id } = input as { id: unknown };
+      if (typeof id !== 'number') {
+        throw new Error('ID must be a number');
+      }
+      return { id };
+    }).query(async ({ input }) => {
+      const { getReportById } = await import('./db');
+      return await getReportById(input.id);
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

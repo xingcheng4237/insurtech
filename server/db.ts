@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, articles, reports, InsertArticle, InsertReport } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,52 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Articles and Reports queries
+export async function saveArticles(articlesData: InsertArticle[]) {
+  const db = await getDb();
+  if (!db || articlesData.length === 0) return;
+  
+  try {
+    await db.insert(articles).values(articlesData);
+  } catch (error) {
+    console.error('[Database] Failed to save articles:', error);
+    throw error;
+  }
+}
+
+export async function saveReport(reportData: InsertReport) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.insert(reports).values(reportData);
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to save report:', error);
+    throw error;
+  }
+}
+
+export async function getLatestReport() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(reports).orderBy(desc(reports.reportDate)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getAllReports(limit: number = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select().from(reports).orderBy(desc(reports.reportDate)).limit(limit);
+  return result;
+}
+
+export async function getReportById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(reports).where(eq(reports.id, id)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
