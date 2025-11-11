@@ -47,9 +47,9 @@ export default function ViewReport() {
             <Skeleton className="h-96 w-full" />
           </div>
         ) : report ? (
-          <div className="max-w-5xl mx-auto">
+          <div className="w-full">
             <div 
-              className="bg-white rounded-lg shadow-sm"
+              className="report-html-content bg-white"
               dangerouslySetInnerHTML={{ __html: report.htmlContent }}
             />
           </div>

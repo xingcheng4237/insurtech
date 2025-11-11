@@ -62,16 +62,16 @@ export default function LatestReport() {
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-96 w-full" />
           </div>
         ) : report ? (
-          <div className="max-w-5xl mx-auto">
+          <div className="w-full bg-white">
             <div 
-              className="bg-white rounded-lg shadow-sm"
+              className="report-html-content"
               dangerouslySetInnerHTML={{ __html: report.htmlContent }}
             />
           </div>

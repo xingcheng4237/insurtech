@@ -41,15 +41,14 @@ export function generateHTMLReport(data: ReportData): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f5f5;
-      padding: 20px;
+      background-color: #fafafa;
+      padding: 0;
       line-height: 1.6;
     }
     .container {
-      max-width: 900px;
-      margin: 0 auto;
+      max-width: 100%;
+      margin: 0;
       background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .header {
       background: #000;

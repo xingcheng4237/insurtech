@@ -32,7 +32,7 @@ export class NewsCollector {
   private directFeeds = [
     'https://www.insuranceasia.com/feed',
     'https://www.asia.insurancebusinessmag.com/feed',
-    'https://www.dig-in.com/insurance/feed',
+    // 'https://www.dig-in.com/insurance/feed', // Removed: 404 error
     'https://www.insurtechinsights.com/feed',
     'https://fintechnews.sg/feed',
     'https://www.insurancebusinessmag.com/asia/rss',

@@ -13,6 +13,14 @@
 - [x] Email delivery integration (using existing Python email functionality)
 - [x] Manual collection trigger via web UI
 
+## UI/UX Improvements (User Feedback)
+
+- [x] Optimize report display UI for better readability
+- [x] Remove broken RSS feed (dig-in.com 404 error)
+- [x] Full-width layout for report viewing
+- [x] Better HTML report rendering on web pages
+- [x] Improved spacing and typography in report view
+
 ## Future Enhancements (Optional)
 
 - [ ] Admin dashboard for managing collection settings
