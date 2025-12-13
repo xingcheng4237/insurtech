@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Newspaper, History, TrendingUp } from "lucide-react";
+import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { APP_TITLE } from "@/const";
 import { Link } from "wouter";
 
@@ -51,6 +52,11 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+        </div>
+
+        {/* Subscription Form */}
+        <div className="max-w-md mx-auto px-6 mt-16">
+          <SubscriptionForm />
         </div>
       </section>
 

@@ -120,6 +120,60 @@ export const appRouter = router({
     }),
   }),
 
+  // Email subscription
+  subscription: router({
+    // Subscribe to newsletter
+    subscribe: publicProcedure.input((input: unknown) => {
+      if (typeof input !== 'object' || input === null || !('email' in input)) {
+        throw new Error('Invalid input');
+      }
+      const { email, name } = input as { email: unknown; name?: unknown };
+      if (typeof email !== 'string' || !email.includes('@')) {
+        throw new Error('Valid email is required');
+      }
+      return { email, name: typeof name === 'string' ? name : undefined };
+    }).mutation(async ({ input }) => {
+      const { subscribeEmail } = await import('./subscriptionService');
+      return await subscribeEmail(input.email, input.name);
+    }),
+    
+    // Verify email
+    verify: publicProcedure.input((input: unknown) => {
+      if (typeof input !== 'object' || input === null || !('token' in input)) {
+        throw new Error('Invalid input');
+      }
+      const { token } = input as { token: unknown };
+      if (typeof token !== 'string') {
+        throw new Error('Token must be a string');
+      }
+      return { token };
+    }).mutation(async ({ input }) => {
+      const { verifySubscription } = await import('./subscriptionService');
+      return await verifySubscription(input.token);
+    }),
+    
+    // Unsubscribe
+    unsubscribe: publicProcedure.input((input: unknown) => {
+      if (typeof input !== 'object' || input === null || !('token' in input)) {
+        throw new Error('Invalid input');
+      }
+      const { token } = input as { token: unknown };
+      if (typeof token !== 'string') {
+        throw new Error('Token must be a string');
+      }
+      return { token };
+    }).mutation(async ({ input }) => {
+      const { unsubscribeEmail } = await import('./subscriptionService');
+      return await unsubscribeEmail(input.token);
+    }),
+    
+    // Get subscription stats
+    stats: publicProcedure.query(async () => {
+      const { getSubscriptionStats } = await import('./subscriptionService');
+      return await getSubscriptionStats();
+    }),
+  }),
+
   // Weekly performance review
   performance: router({
     weekly: publicProcedure.query(async () => {

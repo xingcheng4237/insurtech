@@ -42,3 +42,16 @@
 - [x] Design professional weekly performance email template
 - [x] Schedule weekly automation (every Monday 9:00 AM SGT)
 - [x] Test weekly performance review system
+
+
+## Email Subscription Feature (New Feature)
+
+- [x] Design subscription database schema
+- [x] Add subscribers table with email verification
+- [x] Implement subscription API endpoints (subscribe/unsubscribe/verify)
+- [x] Create subscription form on homepage
+- [x] Add email verification system
+- [x] Create subscription management page (verify/unsubscribe pages)
+- [x] Integrate with daily email delivery system
+- [x] Add unsubscribe link to emails
+- [ ] Test subscription workflow end-to-end

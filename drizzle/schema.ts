@@ -75,3 +75,22 @@ export const collectionLogs = mysqlTable("collection_logs", {
 
 export type CollectionLog = typeof collectionLogs.$inferSelect;
 export type InsertCollectionLog = typeof collectionLogs.$inferInsert;
+
+/**
+ * Subscribers table for email newsletter subscriptions
+ */
+export const subscribers = mysqlTable("subscribers", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  name: varchar("name", { length: 255 }),
+  verified: boolean("verified").default(false).notNull(),
+  verificationToken: varchar("verificationToken", { length: 64 }),
+  unsubscribeToken: varchar("unsubscribeToken", { length: 64 }).notNull(),
+  subscribedAt: timestamp("subscribedAt").defaultNow().notNull(),
+  verifiedAt: timestamp("verifiedAt"),
+  unsubscribedAt: timestamp("unsubscribedAt"),
+  active: boolean("active").default(true).notNull(),
+});
+
+export type Subscriber = typeof subscribers.$inferSelect;
+export type InsertSubscriber = typeof subscribers.$inferInsert;

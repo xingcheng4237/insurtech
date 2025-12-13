@@ -1,6 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
+import Verify from "@/pages/Verify";
+import Unsubscribe from "@/pages/Unsubscribe";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -17,6 +19,8 @@ function Router() {
       <Route path={"/latest"} component={LatestReport} />
       <Route path={"/history"} component={ReportHistory} />
       <Route path={"/report/:id"} component={ViewReport} />
+      <Route path={"/verify"} component={Verify} />
+      <Route path={"/unsubscribe"} component={Unsubscribe} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
