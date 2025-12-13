@@ -19,8 +19,9 @@ export const appRouter = router({
 
   // News collection and reports
   news: router({
-    // Trigger manual news collection
+    // Trigger man    // Collect news
     collect: publicProcedure.mutation(async () => {
+      const startTime = new Date();
       const { NewsCollector } = await import('./newsCollector');
       const { generateHTMLReport } = await import('./reportGenerator');
       const { saveArticles, saveReport } = await import('./db');
@@ -61,13 +62,27 @@ export const appRouter = router({
         region: a.region,
       })));
       
-      await saveReport({
+      const reportResult = await saveReport({
         reportDate: new Date(),
         htmlContent,
         aiAnalysis,
         articleCount: result.articles.length,
         categories: JSON.stringify(Object.keys(categorizedNews)),
         emailSent: 0,
+      });
+      
+      const endTime = new Date();
+      
+      // Log performance metrics
+      const { createCollectionLog } = await import('./db');
+      await createCollectionLog({
+        reportId: reportResult && 'insertId' in reportResult ? Number(reportResult.insertId) : null,
+        startTime,
+        endTime,
+        collectionTime: result.collectionTime,
+        articleCount: result.articles.length,
+        emailSent: false,
+        status: 'success',
       });
       
       return {
@@ -102,6 +117,15 @@ export const appRouter = router({
     }).query(async ({ input }) => {
       const { getReportById } = await import('./db');
       return await getReportById(input.id);
+    }),
+  }),
+
+  // Weekly performance review
+  performance: router({
+    weekly: publicProcedure.query(async () => {
+      const { generateWeeklyReport } = await import('./weeklyReportGenerator');
+      const { html, stats } = await generateWeeklyReport();
+      return { html, stats };
     }),
   }),
 });

@@ -15,6 +15,13 @@
       "when": 1762821686716,
       "tag": "0001_lethal_sheva_callister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765588061654,
+      "tag": "0002_breezy_preak",
+      "breakpoints": true
     }
   ]
 }

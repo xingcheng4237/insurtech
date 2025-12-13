@@ -31,3 +31,14 @@
 - [ ] RSS feed management UI
 - [ ] Analytics dashboard for article trends
 - [ ] Mobile app version
+
+
+## Weekly Performance Review System (New Feature)
+
+- [x] Design performance metrics tracking system
+- [x] Add database schema for tracking collection logs
+- [x] Implement performance analytics backend API
+- [x] Create weekly report generator with statistics
+- [x] Design professional weekly performance email template
+- [x] Schedule weekly automation (every Monday 9:00 AM SGT)
+- [x] Test weekly performance review system

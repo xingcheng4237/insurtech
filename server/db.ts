@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, articles, reports, InsertArticle, InsertReport } from "../drizzle/schema";
+import { InsertUser, users, articles, reports, InsertArticle, InsertReport, collectionLogs, InsertCollectionLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -137,4 +137,76 @@ export async function getReportById(id: number) {
   
   const result = await db.select().from(reports).where(eq(reports.id, id)).limit(1);
   return result.length > 0 ? result[0] : null;
+}
+
+// Collection Logs helpers
+export async function createCollectionLog(log: InsertCollectionLog) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create collection log: database not available");
+    return null;
+  }
+  
+  try {
+    const result = await db.insert(collectionLogs).values(log);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to create collection log:", error);
+    throw error;
+  }
+}
+
+export async function getCollectionLogsByDateRange(startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get collection logs: database not available");
+    return [];
+  }
+  
+  try {
+    const { and, gte, lte } = await import("drizzle-orm");
+    const logs = await db
+      .select()
+      .from(collectionLogs)
+      .where(
+        and(
+          gte(collectionLogs.createdAt, startDate),
+          lte(collectionLogs.createdAt, endDate)
+        )
+      )
+      .orderBy(collectionLogs.createdAt);
+    return logs;
+  } catch (error) {
+    console.error("[Database] Failed to get collection logs:", error);
+    return [];
+  }
+}
+
+export async function getWeeklyPerformanceStats(startDate: Date, endDate: Date) {
+  const logs = await getCollectionLogsByDateRange(startDate, endDate);
+  
+  if (logs.length === 0) {
+    return {
+      totalCollections: 0,
+      successfulCollections: 0,
+      failedCollections: 0,
+      avgCollectionTime: 0,
+      avgArticleCount: 0,
+      emailSuccessRate: 0,
+      totalArticles: 0,
+    };
+  }
+  
+  const successfulLogs = logs.filter(log => log.status === "success");
+  const emailSentLogs = logs.filter(log => log.emailSent);
+  
+  return {
+    totalCollections: logs.length,
+    successfulCollections: successfulLogs.length,
+    failedCollections: logs.filter(log => log.status === "failed").length,
+    avgCollectionTime: successfulLogs.reduce((sum, log) => sum + log.collectionTime, 0) / successfulLogs.length,
+    avgArticleCount: successfulLogs.reduce((sum, log) => sum + log.articleCount, 0) / successfulLogs.length,
+    emailSuccessRate: (emailSentLogs.length / logs.length) * 100,
+    totalArticles: logs.reduce((sum, log) => sum + log.articleCount, 0),
+  };
 }

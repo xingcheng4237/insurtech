@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, float, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -55,3 +55,23 @@ export const reports = mysqlTable("reports", {
 
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = typeof reports.$inferInsert;
+
+/**
+ * Collection logs table for tracking performance metrics
+ */
+export const collectionLogs = mysqlTable("collection_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  reportId: int("reportId").references(() => reports.id),
+  startTime: timestamp("startTime").notNull(),
+  endTime: timestamp("endTime").notNull(),
+  collectionTime: float("collectionTime").notNull(), // in seconds
+  articleCount: int("articleCount").notNull(),
+  emailSent: boolean("emailSent").default(false).notNull(),
+  emailSentAt: timestamp("emailSentAt"),
+  errorMessage: text("errorMessage"),
+  status: mysqlEnum("status", ["success", "partial", "failed"]).default("success").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CollectionLog = typeof collectionLogs.$inferSelect;
+export type InsertCollectionLog = typeof collectionLogs.$inferInsert;
