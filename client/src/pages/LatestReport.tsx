@@ -11,14 +11,16 @@ export default function LatestReport() {
   const collectNews = trpc.news.collect.useMutation({
     onSuccess: (data) => {
       if (data.success) {
-        toast.success(`Collected ${data.articleCount} articles in ${data.collectionTime?.toFixed(1) || '?'}s`);
-        refetch();
+        toast.success(data.message || 'News collection started');
+        toast.info('This may take 5-10 minutes. Refresh the page to see the new report.');
+        // Refresh after 30 seconds to check for updates
+        setTimeout(() => refetch(), 30000);
       } else {
-        toast.error(data.message || 'Failed to collect news');
+        toast.error(data.message || 'Failed to start collection');
       }
     },
     onError: () => {
-      toast.error('Failed to collect news');
+      toast.error('Failed to start news collection');
     },
   });
 

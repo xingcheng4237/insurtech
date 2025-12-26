@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import LatestReport from "./pages/LatestReport";
 import ReportHistory from "./pages/ReportHistory";
 import ViewReport from "./pages/ViewReport";
+import Jobs from "./pages/Jobs";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/latest"} component={LatestReport} />
       <Route path={"/history"} component={ReportHistory} />
       <Route path={"/report/:id"} component={ViewReport} />
+      <Route path={"/jobs"} component={Jobs} />
       <Route path={"/verify"} component={Verify} />
       <Route path={"/unsubscribe"} component={Unsubscribe} />
       <Route path={"/404"} component={NotFound} />

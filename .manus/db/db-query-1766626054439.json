@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, reportDate, articleCount, emailSent FROM reports ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 31rPqg6DhP9GNci.root --database axApMtrRgcLfVLmPnjf29f --execute SELECT id, reportDate, articleCount, emailSent FROM reports ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "90001",
+      "reportDate": "2025-12-25 01:22:45",
+      "articleCount": "2",
+      "emailSent": "0"
+    },
+    {
+      "id": "60001",
+      "reportDate": "2025-12-06 13:30:36",
+      "articleCount": "9",
+      "emailSent": "0"
+    },
+    {
+      "id": "30001",
+      "reportDate": "2025-11-11 01:08:47",
+      "articleCount": "11",
+      "emailSent": "0"
+    },
+    {
+      "id": "1",
+      "reportDate": "2025-11-11 01:02:26",
+      "articleCount": "11",
+      "emailSent": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\treportDate\tarticleCount\temailSent\n90001\t2025-12-25 01:22:45\t2\t0\n60001\t2025-12-06 13:30:36\t9\t0\n30001\t2025-11-11 01:08:47\t11\t0\n1\t2025-11-11 01:02:26\t11\t0\n",
+  "stderr": "",
+  "execution_time_ms": 7704
+}

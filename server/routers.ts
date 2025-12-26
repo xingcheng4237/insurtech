@@ -19,77 +19,44 @@ export const appRouter = router({
 
   // News collection and reports
   news: router({
-    // Trigger man    // Collect news
+    // Trigger news collection as background job
     collect: publicProcedure.mutation(async () => {
-      const startTime = new Date();
-      const { NewsCollector } = await import('./newsCollector');
-      const { generateHTMLReport } = await import('./reportGenerator');
-      const { saveArticles, saveReport } = await import('./db');
-      
-      const collector = new NewsCollector();
-      const result = await collector.collectNews();
-      
-      if (result.articles.length === 0) {
-        return { success: false, message: 'No articles collected' };
-      }
-      
-      // Generate AI analysis
-      const aiAnalysis = await collector.generateAIAnalysis(result.articles);
-      
-      // Categorize articles
-      const categorizedNews = collector.categorizeArticles(result.articles);
-      
-      // Generate HTML report
-      const htmlContent = generateHTMLReport({
-        articles: result.articles,
-        aiAnalysis,
-        categorizedNews,
-        stats: {
-          articleCount: result.articles.length,
-          categoryCount: Object.keys(categorizedNews).length,
-          regions: 11,
-        },
-      });
-      
-      // Save to database
-      await saveArticles(result.articles.map(a => ({
-        title: a.title,
-        url: a.url,
-        source: a.source,
-        publishedDate: a.publishedDate,
-        snippet: a.snippet,
-        category: a.category,
-        region: a.region,
-      })));
-      
-      const reportResult = await saveReport({
-        reportDate: new Date(),
-        htmlContent,
-        aiAnalysis,
-        articleCount: result.articles.length,
-        categories: JSON.stringify(Object.keys(categorizedNews)),
-        emailSent: 0,
-      });
-      
-      const endTime = new Date();
-      
-      // Log performance metrics
-      const { createCollectionLog } = await import('./db');
-      await createCollectionLog({
-        reportId: reportResult && 'insertId' in reportResult ? Number(reportResult.insertId) : null,
-        startTime,
-        endTime,
-        collectionTime: result.collectionTime,
-        articleCount: result.articles.length,
-        emailSent: false,
-        status: 'success',
-      });
+      const { jobQueue } = await import('./jobQueue');
+      const jobId = await jobQueue.addJob('news_collection');
       
       return {
         success: true,
-        articleCount: result.articles.length,
-        collectionTime: result.collectionTime,
+        message: 'News collection started in background',
+        jobId,
       };
+    }),
+    
+    // Get job status
+    jobStatus: publicProcedure
+      .input((val: unknown) => {
+        if (typeof val === 'object' && val !== null && 'jobId' in val) {
+          return val as { jobId: string };
+        }
+        throw new Error('Invalid input: jobId required');
+      })
+      .query(async ({ input }) => {
+        const { jobQueue } = await import('./jobQueue');
+        const job = jobQueue.getJob(input.jobId);
+        
+        if (!job) {
+          return { found: false };
+        }
+        
+        return {
+          found: true,
+          ...job,
+        };
+      }),
+    
+    // Get all jobs
+    jobs: publicProcedure.query(async () => {
+      const { jobQueue } = await import('./jobQueue');
+      return jobQueue.getAllJobs();
     }),
     
     // Get latest report

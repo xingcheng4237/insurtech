@@ -55,3 +55,21 @@
 - [x] Integrate with daily email delivery system
 - [x] Add unsubscribe link to emails
 - [ ] Test subscription workflow end-to-end
+
+
+## Daily Schedule Fix (Bug Report)
+
+- [x] Diagnose why daily 9:00 AM SGT schedule is not executing
+- [x] Fix the scheduled automation properly using Manus schedule tool
+- [x] Verify daily collection is running automatically
+- [ ] Test that emails are being sent daily (will verify tomorrow)
+
+
+## Background Job Processing (Performance Fix)
+
+- [x] Implement background job queue system
+- [x] Update news collection API to use background jobs
+- [x] Add job status tracking in database
+- [x] Create job monitoring endpoint (/jobs page)
+- [x] Test manual collection trigger with background jobs
+- [x] Verify scheduled automation works with new system
