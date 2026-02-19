@@ -1,10 +1,9 @@
 /**
  * Email Service
- * Handles sending emails via SMTP using nodemailer
+ * Handles sending emails via Resend API (bypasses SMTP port blocking)
  */
 
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 interface EmailOptions {
   to: string;
@@ -14,50 +13,36 @@ interface EmailOptions {
 }
 
 class EmailService {
-  private transporter: Transporter | null = null;
+  private resend: Resend | null = null;
   private isConfigured = false;
+  private fromEmail: string = '';
+  private fromName: string = '';
 
   constructor() {
     this.initialize();
   }
 
   private initialize() {
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = process.env.SMTP_PORT;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-
-    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-      console.warn('⚠️  Email service not configured. Missing SMTP environment variables.');
-      console.warn('   Required: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS');
+    const resendApiKey = process.env.RESEND_API_KEY;
+    
+    if (!resendApiKey) {
+      console.warn('⚠️  Email service not configured. Missing RESEND_API_KEY environment variable.');
+      console.warn('   Get your API key at: https://resend.com/api-keys');
       this.isConfigured = false;
       return;
     }
 
     try {
-      this.transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: parseInt(smtpPort),
-        secure: parseInt(smtpPort) === 465, // true for 465, false for other ports
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-        // Force IPv4 to avoid IPv6 network issues in Railway
-        tls: {
-          // Do not fail on invalid certs
-          rejectUnauthorized: false,
-        },
-        // Force IPv4 connection
-        socketTimeout: 30000,
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        // Use IPv4 family
-        family: 4,
-      });
-
+      this.resend = new Resend(resendApiKey);
+      
+      // Configure sender email
+      // Resend requires verified domain or use onboarding@resend.dev for testing
+      this.fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+      this.fromName = process.env.EMAIL_FROM_NAME || 'Insurtech News Tracker';
+      
       this.isConfigured = true;
-      console.log('✅ Email service configured successfully');
+      console.log('✅ Email service configured successfully (Resend API)');
+      console.log(`   From: ${this.fromName} <${this.fromEmail}>`);
     } catch (error) {
       console.error('❌ Failed to initialize email service:', error);
       this.isConfigured = false;
@@ -65,27 +50,32 @@ class EmailService {
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
-    if (!this.isConfigured || !this.transporter) {
+    if (!this.isConfigured || !this.resend) {
       console.error('❌ Cannot send email: Email service not configured');
+      console.error('   Set RESEND_API_KEY environment variable');
       return false;
     }
 
     try {
-      const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER;
-      const fromName = process.env.EMAIL_FROM_NAME || 'Insurtech News Tracker';
-
-      const info = await this.transporter.sendMail({
-        from: `"${fromName}" <${fromEmail}>`,
-        to: options.to,
+      const { data, error } = await this.resend.emails.send({
+        from: `${this.fromName} <${this.fromEmail}>`,
+        to: [options.to],
         subject: options.subject,
-        text: options.text || '',
         html: options.html,
+        text: options.text || '',
       });
 
-      console.log('✅ Email sent successfully:', info.messageId);
+      if (error) {
+        console.error('❌ Resend API error:', error);
+        return false;
+      }
+
+      console.log('✅ Email sent successfully via Resend');
+      console.log('   Email ID:', data?.id);
+      console.log('   Recipient:', options.to);
       return true;
-    } catch (error) {
-      console.error('❌ Failed to send email:', error);
+    } catch (error: any) {
+      console.error('❌ Failed to send email:', error?.message || error);
       return false;
     }
   }
