@@ -75,28 +75,26 @@ function getRandomUserAgent(): string {
 
 export class NewsCollector {
   private directFeeds = [
-    'https://www.insuranceasia.com/feed',
-    'https://www.asia.insurancebusinessmag.com/feed',
-    // 'https://www.dig-in.com/insurance/feed', // Removed: 404 error
+    'https://insuranceasia.com/rss.xml', // Fixed: was /feed, now /rss.xml
     'https://www.insurtechinsights.com/feed',
     'https://fintechnews.sg/feed',
     'https://www.insurancebusinessmag.com/asia/rss',
     'https://www.the-digital-insurer.com/feed',
+    // Additional reliable sources
+    'https://www.dig-in.com/rss/topic/insurance',
+    'https://www.insurancetimes.co.uk/feed',
+    'https://www.reinsurancene.ws/feed/',
   ];
 
   private searchQueries = [
     'insurtech Asia Pacific',
     'life insurance Asia Pacific',
-    'health insurance Asia',
-    'life insurance technology Asia',
     'health insurance digital Asia',
-    'insurance AI Asia Pacific',
     'insurtech funding Asia',
-    'insurance M&A Asia Pacific',
-    'insurtech startup Asia',
+    'insurance AI Asia',
   ];
 
-  private regions = ['SG', 'IN', 'AU', 'JP', 'CN', 'HK', 'MY', 'ID', 'PH', 'TH', 'VN'];
+  private regions = ['SG', 'IN', 'AU', 'JP', 'HK', 'MY'];
 
   async collectNews(): Promise<CollectionResult> {
     const startTime = Date.now();
@@ -105,28 +103,28 @@ export class NewsCollector {
     // Create promise functions for Google News searches with delays
     const googleNewsPromises = this.searchQueries.flatMap(query =>
       this.regions.map((region, index) => async () => {
-        // Add delay between requests (2-4 seconds randomized)
-        const delayMs = 2000 + Math.random() * 2000;
+        // Add delay between requests (4-7 seconds randomized)
+        const delayMs = 4000 + Math.random() * 3000;
         await delay(delayMs);
         return this.searchGoogleNews(query, region);
       })
     );
 
-    // Process Google News searches with concurrency limit of 5
+    // Process Google News searches with concurrency limit of 3
     console.log(`📡 Fetching Google News (${googleNewsPromises.length} queries with rate limiting)...`);
-    const googleResults = await promiseAllWithLimit(googleNewsPromises, 5);
+    const googleResults = await promiseAllWithLimit(googleNewsPromises, 3);
     const googleArticles = googleResults.flat();
     console.log(`✅ Google News: ${googleArticles.length} articles collected`);
 
     // Direct RSS feeds with delays
     console.log(`📡 Fetching RSS feeds (${this.directFeeds.length} feeds)...`);
     const rssPromises = this.directFeeds.map((feed, index) => async () => {
-      // Add delay between RSS requests (1-2 seconds)
-      await delay(1000 + Math.random() * 1000);
+      // Add delay between RSS requests (2-3 seconds)
+      await delay(2000 + Math.random() * 1000);
       return this.fetchRSSFeed(feed);
     });
     
-    const rssResults = await promiseAllWithLimit(rssPromises, 3);
+    const rssResults = await promiseAllWithLimit(rssPromises, 4);
     const rssArticles = rssResults.flat();
     console.log(`✅ RSS Feeds: ${rssArticles.length} articles collected`);
 
