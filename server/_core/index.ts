@@ -32,6 +32,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   // Run database migrations on startup
   await runMigrations();
+  
+  // Initialize scheduler for automated news collection
+  const { scheduler } = await import('../scheduler');
+  // Scheduler starts automatically based on SCHEDULE_ENABLED env var
+  
   const app = express();
   const server = createServer(app);
   // Health check endpoint for Railway

@@ -100,6 +100,12 @@ export const appRouter = router({
       const { getReportById } = await import('./db');
       return await getReportById(input.id);
     }),
+    
+    // Get schedule status
+    scheduleStatus: publicProcedure.query(async () => {
+      const { scheduler } = await import('./scheduler');
+      return scheduler.getStatus();
+    }),
   }),
 
   // Email subscription
