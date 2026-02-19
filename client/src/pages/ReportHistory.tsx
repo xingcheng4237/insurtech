@@ -78,7 +78,16 @@ export default function ReportHistory() {
                           <CardDescription className="mt-2 flex items-center gap-4">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              {new Date(report.createdAt).toLocaleString()}
+                              {new Date(report.createdAt).toLocaleString('en-US', {
+                                timeZone: 'Asia/Singapore',
+                                year: 'numeric',
+                                month: 'numeric',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: 'numeric',
+                                second: 'numeric',
+                                hour12: true
+                              })} GMT+8
                             </span>
                             <span>{report.articleCount} articles</span>
                             <span>{JSON.parse(report.categories || '[]').length} categories</span>
