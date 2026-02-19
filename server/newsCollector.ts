@@ -75,15 +75,22 @@ function getRandomUserAgent(): string {
 
 export class NewsCollector {
   private directFeeds = [
-    'https://insuranceasia.com/rss.xml', // Fixed: was /feed, now /rss.xml
-    'https://www.insurtechinsights.com/feed',
-    'https://fintechnews.sg/feed',
+    // Asian Insurance News (VERIFIED WORKING)
+    'https://insuranceasia.com/rss.xml',
     'https://www.insurancebusinessmag.com/asia/rss',
+    
+    // Fintech & Insurtech News Asia (VERIFIED WORKING)
+    'https://fintechnews.hk/feed/',
+    'https://fintechnews.sg/feed',
+    
+    // Global Insurtech (VERIFIED WORKING)
+    'https://www.insurtechinsights.com/feed',
     'https://www.the-digital-insurer.com/feed',
-    // Additional reliable sources
-    'https://www.dig-in.com/rss/topic/insurance',
-    'https://www.insurancetimes.co.uk/feed',
     'https://www.reinsurancene.ws/feed/',
+    
+    // Note: Removed broken feeds:
+    // - https://www.dig-in.com/rss/topic/insurance (403 Forbidden)
+    // - https://www.insurancetimes.co.uk/feed (Invalid XML)
   ];
 
   private searchQueries = [

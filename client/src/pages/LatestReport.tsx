@@ -8,12 +8,13 @@ import { toast } from "sonner";
 
 export default function LatestReport() {
   const { data: report, isLoading, refetch } = trpc.news.latest.useQuery();
+  
+  // Production mode: sends to all subscribers
   const collectNews = trpc.news.collect.useMutation({
     onSuccess: (data) => {
       if (data.success) {
         toast.success(data.message || 'News collection started');
         toast.info('This may take 5-10 minutes. Refresh the page to see the new report.');
-        // Refresh after 30 seconds to check for updates
         setTimeout(() => refetch(), 30000);
       } else {
         toast.error(data.message || 'Failed to start collection');
@@ -24,9 +25,31 @@ export default function LatestReport() {
     },
   });
 
+  // Test mode: sends only to xingcheng4237@gmail.com
+  const testCollectNews = trpc.news.testCollect.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('🧪 ' + (data.message || 'Test collection started'));
+        toast.info(`Email will be sent to: ${data.testEmail}`);
+        toast.info('This may take 5-10 minutes. Check your email!');
+        setTimeout(() => refetch(), 30000);
+      } else {
+        toast.error(data.message || 'Failed to start test collection');
+      }
+    },
+    onError: () => {
+      toast.error('Failed to start test news collection');
+    },
+  });
+
   const handleCollect = () => {
-    toast.info('Starting news collection...');
+    toast.info('Starting news collection (PRODUCTION MODE)...');
     collectNews.mutate();
+  };
+
+  const handleTestCollect = () => {
+    toast.info('🧪 Starting TEST collection...');
+    testCollectNews.mutate();
   };
 
   return (
@@ -52,8 +75,17 @@ export default function LatestReport() {
               <Button 
                 variant="outline" 
                 className="gap-2"
+                onClick={handleTestCollect}
+                disabled={testCollectNews.isPending || collectNews.isPending}
+              >
+                <RefreshCw className={`h-4 w-4 ${testCollectNews.isPending ? 'animate-spin' : ''}`} />
+                🧪 Test Collect
+              </Button>
+              <Button 
+                variant="default" 
+                className="gap-2"
                 onClick={handleCollect}
-                disabled={collectNews.isPending}
+                disabled={collectNews.isPending || testCollectNews.isPending}
               >
                 <RefreshCw className={`h-4 w-4 ${collectNews.isPending ? 'animate-spin' : ''}`} />
                 Collect News
@@ -84,10 +116,25 @@ export default function LatestReport() {
             <p className="text-muted-foreground mb-6">
               Click "Collect News" to generate your first daily digest.
             </p>
-            <Button onClick={handleCollect} disabled={collectNews.isPending} className="gap-2">
-              <RefreshCw className={`h-4 w-4 ${collectNews.isPending ? 'animate-spin' : ''}`} />
-              Collect News Now
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                onClick={handleTestCollect} 
+                disabled={testCollectNews.isPending || collectNews.isPending} 
+                variant="outline"
+                className="gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${testCollectNews.isPending ? 'animate-spin' : ''}`} />
+                🧪 Test Collect
+              </Button>
+              <Button 
+                onClick={handleCollect} 
+                disabled={collectNews.isPending || testCollectNews.isPending} 
+                className="gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${collectNews.isPending ? 'animate-spin' : ''}`} />
+                Collect News Now
+              </Button>
+            </div>
           </div>
         )}
       </main>
