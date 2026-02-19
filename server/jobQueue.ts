@@ -102,6 +102,8 @@ class JobQueue {
     const { NewsCollector } = await import('./newsCollector');
     const { generateHTMLReport } = await import('./reportGenerator');
     const { saveArticles, saveReport, createCollectionLog } = await import('./db');
+    const { emailService } = await import('./services/emailService');
+    const { generateDailyNewsEmail } = await import('./services/emailTemplates');
     
     const startTime = new Date();
     const collector = new NewsCollector();
@@ -143,13 +145,52 @@ class JobQueue {
       region: a.region,
     })));
     
+    // Send email if configured
+    let emailSent = false;
+    const recipientEmail = process.env.EMAIL_TO || process.env.SMTP_USER;
+    
+    if (emailService.isReady() && recipientEmail) {
+      console.log('[NewsCollection] Sending email report...');
+      try {
+        const emailHtml = generateDailyNewsEmail(
+          result.articles,
+          aiAnalysis,
+          categorizedNews
+        );
+        
+        const today = new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+        
+        emailSent = await emailService.sendNewsReport(
+          recipientEmail,
+          `Insurtech News Daily Digest - ${today}`,
+          emailHtml,
+          result.articles
+        );
+        
+        if (emailSent) {
+          console.log('[NewsCollection] Email sent successfully to:', recipientEmail);
+        } else {
+          console.error('[NewsCollection] Email sending failed');
+        }
+      } catch (error) {
+        console.error('[NewsCollection] Email error:', error);
+      }
+    } else {
+      console.warn('[NewsCollection] Email not configured - skipping email delivery');
+    }
+    
     const reportResult = await saveReport({
       reportDate: new Date(),
       htmlContent,
       aiAnalysis,
       articleCount: result.articles.length,
       categories: JSON.stringify(Object.keys(categorizedNews)),
-      emailSent: 0,
+      emailSent: emailSent ? 1 : 0,
     });
     
     const endTime = new Date();
@@ -161,7 +202,7 @@ class JobQueue {
       endTime,
       collectionTime: result.collectionTime,
       articleCount: result.articles.length,
-      emailSent: false,
+      emailSent: emailSent,
       status: 'success',
     });
     
@@ -173,6 +214,7 @@ class JobQueue {
       collectionTime: result.collectionTime,
       totalDuration: duration,
       reportId: reportResult && 'insertId' in reportResult ? Number(reportResult.insertId) : null,
+      emailSent,
     };
   }
 
