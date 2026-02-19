@@ -209,10 +209,16 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
+const resolveApiUrl = () => {
+  // Use OpenAI API directly if OPENAI_API_KEY is set
+  if (process.env.OPENAI_API_KEY) {
+    return "https://api.openai.com/v1/chat/completions";
+  }
+  // Fallback to Manus Forge API
+  return ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
     ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
     : "https://forge.manus.im/v1/chat/completions";
+};
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
@@ -279,8 +285,11 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     response_format,
   } = params;
 
+  // Use gpt-4o-mini if OpenAI API key is set, otherwise use Gemini
+  const model = process.env.OPENAI_API_KEY ? "gpt-4o-mini" : "gemini-2.5-flash";
+  
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
+    model,
     messages: messages.map(normalizeMessage),
   };
 
@@ -296,9 +305,15 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
+  // Only add thinking parameter for Gemini models
+  if (!process.env.OPENAI_API_KEY) {
+    payload.max_tokens = 32768;
+    payload.thinking = {
+      "budget_tokens": 128
+    };
+  } else {
+    // OpenAI models use different max_tokens
+    payload.max_tokens = 16384;
   }
 
   const normalizedResponseFormat = normalizeResponseFormat({
