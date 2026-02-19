@@ -142,20 +142,75 @@ class Scheduler {
 
     const [hours, minutes] = this.config.time.split(':').map(Number);
     
-    // Get current time in the target timezone
-    const nowInTimezone = new Date().toLocaleString('en-US', { timeZone: this.config.timezone });
-    const now = new Date(nowInTimezone);
+    // Get current UTC time
+    const now = new Date();
     
-    // Create next run time in the target timezone
-    const next = new Date(nowInTimezone);
-    next.setHours(hours, minutes, 0, 0);
+    // Format current time in target timezone to get date components
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: this.config.timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
     
-    // If the time has passed today, schedule for tomorrow
-    if (next <= now) {
-      next.setDate(next.getDate() + 1);
+    const parts = formatter.formatToParts(now);
+    const getValue = (type: string) => parts.find(p => p.type === type)?.value || '0';
+    
+    const currentYear = parseInt(getValue('year'));
+    const currentMonth = parseInt(getValue('month')) - 1; // JS months are 0-indexed
+    const currentDay = parseInt(getValue('day'));
+    const currentHour = parseInt(getValue('hour'));
+    const currentMinute = parseInt(getValue('minute'));
+    
+    // Create next run date in target timezone
+    // We'll create a date string in ISO format for the target timezone
+    let nextDay = currentDay;
+    let nextMonth = currentMonth;
+    let nextYear = currentYear;
+    
+    // If scheduled time has passed today in target timezone, schedule for tomorrow
+    if (hours < currentHour || (hours === currentHour && minutes <= currentMinute)) {
+      nextDay++;
+      // Handle month/year rollover
+      const daysInMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
+      if (nextDay > daysInMonth) {
+        nextDay = 1;
+        nextMonth++;
+        if (nextMonth > 11) {
+          nextMonth = 0;
+          nextYear++;
+        }
+      }
     }
-
-    return next.toLocaleString('en-US', {
+    
+    // Create a date object representing the scheduled time in target timezone
+    // We'll format it directly using the target timezone
+    const scheduledDate = new Date(Date.UTC(nextYear, nextMonth, nextDay, hours, minutes, 0));
+    
+    // Adjust for timezone offset
+    // Get the offset between UTC and target timezone
+    const offsetFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: this.config.timezone,
+      timeZoneName: 'longOffset',
+    });
+    const offsetParts = offsetFormatter.formatToParts(now);
+    const offsetString = offsetParts.find(p => p.type === 'timeZoneName')?.value || 'GMT';
+    const offsetMatch = offsetString.match(/GMT([+-])(\d+)/);
+    
+    let offsetHours = 0;
+    if (offsetMatch) {
+      offsetHours = parseInt(offsetMatch[2]) * (offsetMatch[1] === '+' ? 1 : -1);
+    }
+    
+    // Adjust the UTC time by the offset
+    const adjustedTime = new Date(scheduledDate.getTime() - (offsetHours * 60 * 60 * 1000));
+    
+    // Format the result
+    return adjustedTime.toLocaleString('en-US', {
       timeZone: this.config.timezone,
       weekday: 'long',
       year: 'numeric',
