@@ -141,9 +141,13 @@ class Scheduler {
     }
 
     const [hours, minutes] = this.config.time.split(':').map(Number);
-    const now = new Date();
-    const next = new Date();
     
+    // Get current time in the target timezone
+    const nowInTimezone = new Date().toLocaleString('en-US', { timeZone: this.config.timezone });
+    const now = new Date(nowInTimezone);
+    
+    // Create next run time in the target timezone
+    const next = new Date(nowInTimezone);
     next.setHours(hours, minutes, 0, 0);
     
     // If the time has passed today, schedule for tomorrow
