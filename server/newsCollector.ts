@@ -2,6 +2,7 @@
  * News Collection Service
  * Ported from Python news_collector_phase2.py
  * Features: Parallel processing, Direct RSS feeds, Caching, AI filtering, Smart deduplication
+ * Enhanced with rate limiting, delays, and retry logic
  */
 
 import axios from 'axios';
@@ -26,6 +27,50 @@ interface CollectionResult {
     afterDedup: number;
     afterAIFilter: number;
   };
+}
+
+// Helper function to delay execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to process promises with concurrency limit
+async function promiseAllWithLimit<T>(
+  promises: (() => Promise<T>)[],
+  limit: number
+): Promise<T[]> {
+  const results: T[] = [];
+  const executing: Promise<void>[] = [];
+
+  for (const promiseFn of promises) {
+    const promise = promiseFn().then(result => {
+      results.push(result);
+    });
+
+    executing.push(promise);
+
+    if (executing.length >= limit) {
+      await Promise.race(executing);
+      executing.splice(
+        executing.findIndex(p => p === promise),
+        1
+      );
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
+}
+
+// Random User-Agent rotation to avoid bot detection
+const USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+];
+
+function getRandomUserAgent(): string {
+  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
 export class NewsCollector {
@@ -57,18 +102,31 @@ export class NewsCollector {
     const startTime = Date.now();
     console.log('🚀 Starting news collection...');
 
-    // Parallel Google News searches
+    // Create promise functions for Google News searches with delays
     const googleNewsPromises = this.searchQueries.flatMap(query =>
-      this.regions.map(region => this.searchGoogleNews(query, region))
+      this.regions.map((region, index) => async () => {
+        // Add delay between requests (2-4 seconds randomized)
+        const delayMs = 2000 + Math.random() * 2000;
+        await delay(delayMs);
+        return this.searchGoogleNews(query, region);
+      })
     );
 
-    const googleResults = await Promise.all(googleNewsPromises);
+    // Process Google News searches with concurrency limit of 5
+    console.log(`📡 Fetching Google News (${googleNewsPromises.length} queries with rate limiting)...`);
+    const googleResults = await promiseAllWithLimit(googleNewsPromises, 5);
     const googleArticles = googleResults.flat();
     console.log(`✅ Google News: ${googleArticles.length} articles collected`);
 
-    // Direct RSS feeds
-    const rssPromises = this.directFeeds.map(feed => this.fetchRSSFeed(feed));
-    const rssResults = await Promise.all(rssPromises);
+    // Direct RSS feeds with delays
+    console.log(`📡 Fetching RSS feeds (${this.directFeeds.length} feeds)...`);
+    const rssPromises = this.directFeeds.map((feed, index) => async () => {
+      // Add delay between RSS requests (1-2 seconds)
+      await delay(1000 + Math.random() * 1000);
+      return this.fetchRSSFeed(feed);
+    });
+    
+    const rssResults = await promiseAllWithLimit(rssPromises, 3);
     const rssArticles = rssResults.flat();
     console.log(`✅ RSS Feeds: ${rssArticles.length} articles collected`);
 
@@ -94,91 +152,130 @@ export class NewsCollector {
     };
   }
 
-  private async searchGoogleNews(query: string, region: string): Promise<NewsItem[]> {
-    try {
-      const url = 'https://news.google.com/rss/search';
-      const response = await axios.get(url, {
-        params: {
-          q: query,
-          hl: 'en',
-          gl: region,
-          ceid: `${region}:en`,
-        },
-        timeout: 10000,
-      });
-
-      const parsed = await parseStringPromise(response.data);
-      const items = parsed?.rss?.channel?.[0]?.item || [];
-
-      const articles: NewsItem[] = [];
-      for (const item of items.slice(0, 10)) {
-        const pubDate = item.pubDate?.[0] || '';
-        
-        // Filter to last 48 hours (relaxed from 24h)
-        if (pubDate) {
-          const pubDateTime = new Date(pubDate);
-          const hoursSince = (Date.now() - pubDateTime.getTime()) / (1000 * 60 * 60);
-          if (hoursSince > 48) continue;
-        }
-
-        articles.push({
-          title: item.title?.[0] || 'No title',
-          url: item.link?.[0] || '',
-          source: item.source?.[0]?._ || 'Google News',
-          publishedDate: pubDate,
-          snippet: item.description?.[0] || '',
-          region,
+  private async searchGoogleNews(query: string, region: string, retries = 3): Promise<NewsItem[]> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const url = 'https://news.google.com/rss/search';
+        const response = await axios.get(url, {
+          params: {
+            q: query,
+            hl: 'en',
+            gl: region,
+            ceid: `${region}:en`,
+          },
+          timeout: 15000,
+          headers: {
+            'User-Agent': getRandomUserAgent(),
+            'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache',
+          },
         });
-      }
 
-      return articles;
-    } catch (error) {
-      console.error(`Error fetching Google News for ${query} in ${region}:`, error);
-      return [];
-    }
-  }
+        const parsed = await parseStringPromise(response.data);
+        const items = parsed?.rss?.channel?.[0]?.item || [];
 
-  private async fetchRSSFeed(feedUrl: string): Promise<NewsItem[]> {
-    try {
-      const response = await axios.get(feedUrl, { timeout: 10000 });
-      const parsed = await parseStringPromise(response.data);
-      const items = parsed?.rss?.channel?.[0]?.item || [];
+        const articles: NewsItem[] = [];
+        for (const item of items.slice(0, 10)) {
+          const pubDate = item.pubDate?.[0] || '';
+          
+          // Filter to last 48 hours (relaxed from 24h)
+          if (pubDate) {
+            const pubDateTime = new Date(pubDate);
+            const hoursSince = (Date.now() - pubDateTime.getTime()) / (1000 * 60 * 60);
+            if (hoursSince > 48) continue;
+          }
 
-      const articles: NewsItem[] = [];
-      for (const item of items.slice(0, 15)) {
-        const pubDate = item.pubDate?.[0] || '';
-        
-        // Filter to last 48 hours
-        if (pubDate) {
-          const pubDateTime = new Date(pubDate);
-          const hoursSince = (Date.now() - pubDateTime.getTime()) / (1000 * 60 * 60);
-          if (hoursSince > 48) continue;
-        }
-
-        const title = item.title?.[0] || '';
-        const titleLower = title.toLowerCase();
-
-        // Filter by insurtech keywords
-        const keywords = ['insurtech', 'insurance', 'digital', 'embedded', 'underwriting', 
-                         'life insurance', 'health insurance', 'ai', 'artificial intelligence', 
-                         'fintech', 'regtech'];
-        
-        if (keywords.some(kw => titleLower.includes(kw))) {
           articles.push({
-            title,
+            title: item.title?.[0] || 'No title',
             url: item.link?.[0] || '',
-            source: feedUrl.split('/')[2] || 'RSS Feed',
+            source: item.source?.[0]?._ || 'Google News',
             publishedDate: pubDate,
             snippet: item.description?.[0] || '',
+            region,
           });
         }
-      }
 
-      return articles;
-    } catch (error) {
-      console.error(`Error fetching RSS feed ${feedUrl}:`, error);
-      return [];
+        return articles;
+      } catch (error: any) {
+        const isRateLimit = error?.response?.status === 429;
+        const isTimeout = error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT';
+        
+        if (attempt < retries && (isRateLimit || isTimeout)) {
+          // Exponential backoff: 5s, 10s, 20s
+          const backoffMs = Math.pow(2, attempt) * 2500;
+          console.warn(`⚠️  Rate limit/timeout for ${query} in ${region}, retrying in ${backoffMs/1000}s (attempt ${attempt}/${retries})`);
+          await delay(backoffMs);
+          continue;
+        }
+        
+        console.error(`❌ Error fetching Google News for ${query} in ${region}:`, error?.message || error);
+        return [];
+      }
     }
+    
+    return [];
+  }
+
+  private async fetchRSSFeed(feedUrl: string, retries = 2): Promise<NewsItem[]> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await axios.get(feedUrl, {
+          timeout: 15000,
+          headers: {
+            'User-Agent': getRandomUserAgent(),
+            'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+          },
+        });
+        
+        const parsed = await parseStringPromise(response.data);
+        const items = parsed?.rss?.channel?.[0]?.item || [];
+
+        const articles: NewsItem[] = [];
+        for (const item of items.slice(0, 15)) {
+          const pubDate = item.pubDate?.[0] || '';
+          
+          // Filter to last 48 hours
+          if (pubDate) {
+            const pubDateTime = new Date(pubDate);
+            const hoursSince = (Date.now() - pubDateTime.getTime()) / (1000 * 60 * 60);
+            if (hoursSince > 48) continue;
+          }
+
+          const title = item.title?.[0] || '';
+          const titleLower = title.toLowerCase();
+
+          // Filter by insurtech keywords
+          const keywords = ['insurtech', 'insurance', 'digital', 'embedded', 'underwriting', 
+                           'life insurance', 'health insurance', 'ai', 'artificial intelligence', 
+                           'fintech', 'regtech'];
+          
+          if (keywords.some(kw => titleLower.includes(kw))) {
+            articles.push({
+              title,
+              url: item.link?.[0] || '',
+              source: feedUrl.split('/')[2] || 'RSS Feed',
+              publishedDate: pubDate,
+              snippet: item.description?.[0] || '',
+            });
+          }
+        }
+
+        return articles;
+      } catch (error: any) {
+        if (attempt < retries) {
+          const backoffMs = 3000 * attempt;
+          console.warn(`⚠️  Error fetching RSS ${feedUrl}, retrying in ${backoffMs/1000}s (attempt ${attempt}/${retries})`);
+          await delay(backoffMs);
+          continue;
+        }
+        
+        console.error(`❌ Error fetching RSS feed ${feedUrl}:`, error?.message || error);
+        return [];
+      }
+    }
+    
+    return [];
   }
 
   private deduplicateArticles(articles: NewsItem[]): NewsItem[] {
