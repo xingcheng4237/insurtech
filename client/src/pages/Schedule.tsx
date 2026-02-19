@@ -152,7 +152,7 @@ export default function Schedule() {
                             in {timeUntilNext}
                           </div>
                         )}
-                      <>
+                      </>
                     ) : (
                       <div className="text-lg text-muted-foreground">
                         Not scheduled
