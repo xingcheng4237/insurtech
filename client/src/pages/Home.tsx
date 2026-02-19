@@ -23,6 +23,9 @@ export default function Home() {
               <Link href="/history">
                 <Button variant="ghost">History</Button>
               </Link>
+              <Link href="/schedule">
+                <Button variant="ghost">Schedule</Button>
+              </Link>
             </nav>
           </div>
         </div>

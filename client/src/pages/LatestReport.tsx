@@ -72,6 +72,9 @@ export default function LatestReport() {
               <Link href="/history">
                 <Button variant="ghost">History</Button>
               </Link>
+              <Link href="/schedule">
+                <Button variant="ghost">Schedule</Button>
+              </Link>
               <Button 
                 variant="outline" 
                 className="gap-2"

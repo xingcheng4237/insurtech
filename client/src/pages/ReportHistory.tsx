@@ -39,6 +39,9 @@ export default function ReportHistory() {
               <Link href="/latest">
                 <Button variant="ghost">Latest Report</Button>
               </Link>
+              <Link href="/schedule">
+                <Button variant="ghost">Schedule</Button>
+              </Link>
             </nav>
           </div>
         </div>
