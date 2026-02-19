@@ -17,7 +17,25 @@ export default function Schedule() {
     if (!status?.nextRun) return;
 
     const updateCountdown = () => {
-      const next = new Date(status.nextRun!);
+      // Try to parse the formatted date string
+      // Format: "Friday, February 20, 2026 at 05:00 PM GMT+8"
+      const dateMatch = status.nextRun!.match(/(\w+), (\w+) (\d+), (\d+) at (\d+):(\d+) (AM|PM)/);
+      if (!dateMatch) {
+        setTimeUntilNext('Unable to calculate');
+        return;
+      }
+      
+      const [_, weekday, month, day, year, hour12, minute, ampm] = dateMatch;
+      let hour = parseInt(hour12);
+      if (ampm === 'PM' && hour !== 12) hour += 12;
+      if (ampm === 'AM' && hour === 12) hour = 0;
+      
+      const monthMap: {[key: string]: number} = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+        'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+      };
+      
+      const next = new Date(parseInt(year), monthMap[month], parseInt(day), hour, parseInt(minute));
       const now = new Date();
       const diff = next.getTime() - now.getTime();
 
@@ -127,20 +145,14 @@ export default function Schedule() {
                     {status.enabled && status.nextRun ? (
                       <>
                         <div className="text-lg font-semibold">
-                          {new Date(status.nextRun).toLocaleString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {status.nextRun}
                         </div>
                         {timeUntilNext && (
                           <div className="text-sm text-muted-foreground">
                             in {timeUntilNext}
                           </div>
                         )}
-                      </>
+                      <>
                     ) : (
                       <div className="text-lg text-muted-foreground">
                         Not scheduled
