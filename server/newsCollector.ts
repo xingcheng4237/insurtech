@@ -388,9 +388,13 @@ Provide a comprehensive analysis in markdown format.`;
 
       const content = response.choices[0]?.message?.content;
       return typeof content === 'string' ? content : 'Analysis unavailable.';
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      return 'Analysis unavailable due to an error.';
+    } catch (error: any) {
+      console.error('❌ AI analysis error:', error?.message || error);
+      console.error('   Error details:', JSON.stringify(error, null, 2));
+      if (error?.response) {
+        console.error('   API Response:', error.response);
+      }
+      return `Analysis unavailable due to an error: ${error?.message || 'Unknown error'}`;
     }
   }
 
