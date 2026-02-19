@@ -43,6 +43,17 @@ class EmailService {
           user: smtpUser,
           pass: smtpPass,
         },
+        // Force IPv4 to avoid IPv6 network issues in Railway
+        tls: {
+          // Do not fail on invalid certs
+          rejectUnauthorized: false,
+        },
+        // Force IPv4 connection
+        socketTimeout: 30000,
+        connectionTimeout: 30000,
+        greetingTimeout: 30000,
+        // Use IPv4 family
+        family: 4,
       });
 
       this.isConfigured = true;
