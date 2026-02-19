@@ -19,15 +19,30 @@ export const appRouter = router({
 
   // News collection and reports
   news: router({
-    // Trigger news collection as background job
+    // Trigger news collection as background job (PRODUCTION MODE - sends to all subscribers)
     collect: publicProcedure.mutation(async () => {
       const { jobQueue } = await import('./jobQueue');
-      const jobId = await jobQueue.addJob('news_collection');
+      const jobId = await jobQueue.addJob('news_collection', false); // Production mode
       
       return {
         success: true,
-        message: 'News collection started in background',
+        message: 'News collection started in PRODUCTION mode (will send to all subscribers)',
         jobId,
+        mode: 'production',
+      };
+    }),
+    
+    // Trigger TEST news collection (sends only to xingcheng4237@gmail.com)
+    testCollect: publicProcedure.mutation(async () => {
+      const { jobQueue } = await import('./jobQueue');
+      const jobId = await jobQueue.addJob('news_collection', true); // Test mode
+      
+      return {
+        success: true,
+        message: 'News collection started in TEST mode (will send to xingcheng4237@gmail.com only)',
+        jobId,
+        mode: 'test',
+        testEmail: 'xingcheng4237@gmail.com',
       };
     }),
     

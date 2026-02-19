@@ -11,6 +11,7 @@ interface Job {
   completedAt?: Date;
   result?: any;
   error?: string;
+  testMode?: boolean; // If true, only send to test email
 }
 
 class JobQueue {
@@ -20,13 +21,14 @@ class JobQueue {
   /**
    * Add a new job to the queue
    */
-  async addJob(type: 'news_collection'): Promise<string> {
+  async addJob(type: 'news_collection', testMode: boolean = false): Promise<string> {
     const jobId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const job: Job = {
       id: jobId,
       type,
       status: 'pending',
+      testMode,
     };
     
     this.jobs.set(jobId, job);
@@ -147,10 +149,11 @@ class JobQueue {
     
     // Send email if configured
     let emailSent = false;
-    const recipientEmail = process.env.EMAIL_TO || process.env.SMTP_USER;
+    let emailsSentCount = 0;
+    const job = this.jobs.get(jobId);
+    const isTestMode = job?.testMode || false;
     
-    if (emailService.isReady() && recipientEmail) {
-      console.log('[NewsCollection] Sending email report...');
+    if (emailService.isReady()) {
       try {
         const emailHtml = generateDailyNewsEmail(
           result.articles,
@@ -165,23 +168,68 @@ class JobQueue {
           day: 'numeric',
         });
         
-        emailSent = await emailService.sendNewsReport(
-          recipientEmail,
-          `Insurtech News Daily Digest - ${today}`,
-          emailHtml,
-          result.articles
-        );
+        const subject = `Insurtech News Daily Digest - ${today}`;
         
-        if (emailSent) {
-          console.log('[NewsCollection] Email sent successfully to:', recipientEmail);
+        if (isTestMode) {
+          // TEST MODE: Send only to test email
+          console.log('[NewsCollection] 🧪 TEST MODE - Sending to test email only');
+          const testEmail = 'xingcheng4237@gmail.com';
+          
+          emailSent = await emailService.sendNewsReport(
+            testEmail,
+            `[TEST] ${subject}`,
+            emailHtml,
+            result.articles
+          );
+          
+          if (emailSent) {
+            emailsSentCount = 1;
+            console.log('[NewsCollection] ✅ Test email sent to:', testEmail);
+          } else {
+            console.error('[NewsCollection] ❌ Test email failed');
+          }
         } else {
-          console.error('[NewsCollection] Email sending failed');
+          // PRODUCTION MODE: Send to all verified subscribers
+          console.log('[NewsCollection] 📧 PRODUCTION MODE - Sending to all subscribers');
+          const { getActiveSubscribers } = await import('./subscriptionService');
+          const subscribers = await getActiveSubscribers();
+          
+          if (subscribers.length === 0) {
+            console.warn('[NewsCollection] ⚠️  No active subscribers found');
+            console.warn('   Add subscribers at: /api/trpc/subscription.subscribe');
+          } else {
+            console.log(`[NewsCollection] Sending to ${subscribers.length} subscriber(s)...`);
+            
+            for (const subscriber of subscribers) {
+              try {
+                const sent = await emailService.sendNewsReport(
+                  subscriber.email,
+                  subject,
+                  emailHtml,
+                  result.articles
+                );
+                
+                if (sent) {
+                  emailsSentCount++;
+                  console.log(`  ✅ Sent to: ${subscriber.email}`);
+                } else {
+                  console.error(`  ❌ Failed to send to: ${subscriber.email}`);
+                }
+              } catch (error: any) {
+                console.error(`  ❌ Error sending to ${subscriber.email}:`, error?.message);
+              }
+            }
+            
+            emailSent = emailsSentCount > 0;
+            console.log(`[NewsCollection] 📊 Emails sent: ${emailsSentCount}/${subscribers.length}`);
+          }
         }
       } catch (error) {
         console.error('[NewsCollection] Email error:', error);
       }
     } else {
       console.warn('[NewsCollection] Email not configured - skipping email delivery');
+      console.warn('   Set RESEND_API_KEY environment variable');
     }
     
     const reportResult = await saveReport({
