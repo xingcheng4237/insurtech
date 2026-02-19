@@ -77,7 +77,7 @@ class JobQueue {
       let result;
       
       if (job.type === 'news_collection') {
-        result = await this.runNewsCollection();
+        result = await this.runNewsCollection(jobId);
       }
       
       job.status = 'completed';
@@ -100,7 +100,7 @@ class JobQueue {
   /**
    * Run news collection
    */
-  private async runNewsCollection(): Promise<any> {
+  private async runNewsCollection(jobId: string): Promise<any> {
     const { NewsCollector } = await import('./newsCollector');
     const { generateHTMLReport } = await import('./reportGenerator');
     const { saveArticles, saveReport, createCollectionLog } = await import('./db');
