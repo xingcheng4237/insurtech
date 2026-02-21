@@ -79,26 +79,46 @@ export class NewsCollector {
     'https://insuranceasia.com/rss.xml',
     'https://www.insurancebusinessmag.com/asia/rss',
     
-    // Fintech & Insurtech News Asia (VERIFIED WORKING)
-    'https://fintechnews.hk/feed/',
-    'https://fintechnews.sg/feed',
-    
     // Global Insurtech (VERIFIED WORKING)
     'https://www.insurtechinsights.com/feed',
     'https://www.the-digital-insurer.com/feed',
     'https://www.reinsurancene.ws/feed/',
     
-    // Note: Removed broken feeds:
+    // AI & Innovation Focus (NEW - VERIFIED FEB 2026)
+    'https://zelros.com/feed',              // AI/ML in insurance specialist
+    'https://iireporter.com/feed',          // Insurance IT innovation
+    
+    // M&A & Regulatory News (NEW - VERIFIED FEB 2026)
+    'https://www.insurancejournal.com/feed/', // M&A, acquisitions, regulatory
+    
+    // Note: Removed feeds:
+    // - https://fintechnews.hk/feed/ (Too broad - general fintech)
+    // - https://fintechnews.sg/feed (Too broad - general fintech)
     // - https://www.dig-in.com/rss/topic/insurance (403 Forbidden)
     // - https://www.insurancetimes.co.uk/feed (Invalid XML)
   ];
 
   private searchQueries = [
+    // Core Insurtech
     'insurtech Asia Pacific',
-    'life insurance Asia Pacific',
-    'health insurance digital Asia',
     'insurtech funding Asia',
     'insurance AI Asia',
+    
+    // Medicare/Healthcare Tech (NEW)
+    'medicare tech insurance',
+    'healthtech insurance Asia',
+    'digital health insurance',
+    
+    // M&A Focus (NEW)
+    'insurance M&A Asia',
+    'insurtech acquisition',
+    
+    // Regulatory Focus (NEW)
+    'insurance regulatory Asia',
+    
+    // Big Tech & Innovation (NEW)
+    'big tech insurance',
+    'insurance company digital transformation',
   ];
 
   private regions = ['SG', 'IN', 'AU', 'JP', 'HK', 'MY'];
@@ -309,13 +329,18 @@ export class NewsCollector {
 
       const prompt = `You are an insurtech industry analyst. Review these ${articles.length} news articles and select the 10-15 most relevant ones for a Chief Product Officer at a Singapore-based insurtech company.
 
-Focus on:
-- Life and healthcare insurance
-- Digital insurance platforms
-- Embedded insurance
-- AI/ML in underwriting
-- Regulatory changes in Asia-Pacific
-- Funding and M&A activities
+PRIORITY FOCUS (select these first):
+- Medicare tech and healthtech insurance innovations
+- M&A (mergers & acquisitions) in insurance and insurtech
+- Regulatory changes and compliance technology
+- AI and machine learning in insurance
+- Big tech companies entering insurance (Google, Apple, Amazon, etc.)
+- Insurance company tech divisions and digital transformation
+
+SECONDARY FOCUS:
+- Insurtech startup funding and investments
+- Digital insurance platforms and embedded insurance
+- Life and healthcare insurance technology
 
 Articles:
 ${articlesText}
@@ -378,7 +403,18 @@ Return ONLY a JSON array of article numbers (1-${articles.length}) for the most 
 3. **Strategic Insights** (3-4 actionable insights for a CPO at a Singapore insurtech)
 4. **Geographic Highlights** (trends by region)
 
-Focus on: Life/Healthcare insurance, Digital platforms, Embedded insurance, AI/ML, Regulatory changes, Funding/M&A.
+PRIORITY FOCUS:
+- Medicare tech and healthtech insurance innovations
+- M&A (mergers & acquisitions) activity and implications
+- Regulatory changes and compliance developments
+- AI and machine learning applications in insurance
+- Big tech companies' insurance initiatives (Google, Apple, Amazon, etc.)
+- Insurance company tech divisions and digital transformation
+
+SECONDARY FOCUS:
+- Insurtech startup funding and investments
+- Digital platforms and embedded insurance
+- Life and healthcare insurance technology
 
 Articles:
 ${articlesText}
