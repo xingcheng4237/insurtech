@@ -45,7 +45,7 @@ async function startServer() {
   });
   
   // Admin endpoint to verify all unverified subscribers
-  app.post("/admin/verify-all-subscribers", async (_req, res) => {
+  const verifyAllHandler = async (_req: any, res: any) => {
     try {
       const { getDb } = await import('../db');
       const { subscribers } = await import('../../drizzle/schema');
@@ -98,7 +98,10 @@ async function startServer() {
         error: String(error)
       });
     }
-  });
+  };
+  
+  app.get("/admin/verify-all-subscribers", verifyAllHandler);
+  app.post("/admin/verify-all-subscribers", verifyAllHandler);
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
