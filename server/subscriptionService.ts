@@ -11,6 +11,30 @@ function generateToken(): string {
 }
 
 /**
+ * Send verification email to subscriber
+ */
+async function sendVerificationEmail(email: string, verificationToken: string, baseUrl: string) {
+  try {
+    const { generateVerificationEmailHTML } = await import('./emailVerification');
+    const { getEmailService } = await import('./services/emailService');
+    
+    const emailService = getEmailService();
+    const html = generateVerificationEmailHTML(email, verificationToken, baseUrl);
+    
+    await emailService.sendEmail(
+      email,
+      'Verify Your Email - Insurtech News Tracker',
+      html
+    );
+    
+    console.log(`[Subscription] Verification email sent to ${email}`);
+  } catch (error) {
+    console.error(`[Subscription] Failed to send verification email to ${email}:`, error);
+    // Don't throw error - subscription should still succeed even if email fails
+  }
+}
+
+/**
  * Subscribe a new email to the newsletter
  */
 export async function subscribeEmail(email: string, name?: string) {
@@ -18,6 +42,9 @@ export async function subscribeEmail(email: string, name?: string) {
   if (!db) {
     throw new Error('Database not available');
   }
+
+  // Get base URL for verification links
+  const baseUrl = process.env.BASE_URL || 'http://localhost:8080';
 
   // Check if email already exists
   const existing = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
@@ -28,6 +55,7 @@ export async function subscribeEmail(email: string, name?: string) {
       return { success: false, message: 'Email already subscribed', alreadySubscribed: true };
     } else if (sub.active && !sub.verified) {
       // Resend verification
+      await sendVerificationEmail(email, sub.verificationToken!, baseUrl);
       return { 
         success: true, 
         message: 'Verification email resent', 
@@ -48,6 +76,7 @@ export async function subscribeEmail(email: string, name?: string) {
         .where(eq(subscribers.id, sub.id));
       
       const updated = await db.select().from(subscribers).where(eq(subscribers.id, sub.id)).limit(1);
+      await sendVerificationEmail(email, updated[0].verificationToken!, baseUrl);
       return { 
         success: true, 
         message: 'Subscription reactivated. Please verify your email.', 
@@ -71,6 +100,9 @@ export async function subscribeEmail(email: string, name?: string) {
   };
 
   await db.insert(subscribers).values(newSubscriber);
+
+  // Send verification email
+  await sendVerificationEmail(email, verificationToken, baseUrl);
 
   return { 
     success: true, 
