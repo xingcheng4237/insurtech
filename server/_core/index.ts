@@ -102,6 +102,41 @@ async function startServer() {
   
   app.get("/admin/verify-all-subscribers", verifyAllHandler);
   app.post("/admin/verify-all-subscribers", verifyAllHandler);
+  
+  // Diagnostic endpoint to view all subscribers
+  app.get("/admin/list-subscribers", async (_req, res) => {
+    try {
+      const { getDb } = await import('../db');
+      const { subscribers } = await import('../../drizzle/schema');
+      
+      const db = await getDb();
+      if (!db) {
+        return res.status(500).json({ success: false, message: 'Database not available' });
+      }
+      
+      const allSubscribers = await db.select().from(subscribers);
+      
+      res.json({
+        success: true,
+        total: allSubscribers.length,
+        subscribers: allSubscribers.map(s => ({
+          email: s.email,
+          name: s.name,
+          active: s.active,
+          verified: s.verified,
+          subscribedAt: s.subscribedAt,
+          verifiedAt: s.verifiedAt
+        }))
+      });
+    } catch (error) {
+      console.error('[Admin] Error listing subscribers:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error listing subscribers',
+        error: String(error)
+      });
+    }
+  });
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
