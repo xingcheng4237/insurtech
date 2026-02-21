@@ -160,6 +160,53 @@ export const appRouter = router({
       const { getSubscriptionStats } = await import('./subscriptionService');
       return await getSubscriptionStats();
     }),
+    
+    // Admin: Verify all unverified subscribers (for migration)
+    verifyAll: publicProcedure.mutation(async () => {
+      const { getDb } = await import('./db');
+      const { subscribers } = await import('../drizzle/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      const db = await getDb();
+      if (!db) {
+        throw new Error('Database not available');
+      }
+      
+      // Get all active but unverified subscribers
+      const unverified = await db.select().from(subscribers)
+        .where(
+          and(
+            eq(subscribers.active, true),
+            eq(subscribers.verified, false)
+          )
+        );
+      
+      if (unverified.length === 0) {
+        return { 
+          success: true, 
+          message: 'No unverified subscribers found',
+          count: 0 
+        };
+      }
+      
+      // Verify all of them
+      for (const sub of unverified) {
+        await db.update(subscribers)
+          .set({ 
+            verified: true, 
+            verifiedAt: new Date(),
+            verificationToken: null 
+          })
+          .where(eq(subscribers.id, sub.id));
+      }
+      
+      return { 
+        success: true, 
+        message: `Successfully verified ${unverified.length} subscriber(s)`,
+        count: unverified.length,
+        emails: unverified.map(s => s.email)
+      };
+    }),
   }),
 
   // Weekly performance review
