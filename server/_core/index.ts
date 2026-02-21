@@ -43,6 +43,62 @@ async function startServer() {
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
   });
+  
+  // Admin endpoint to verify all unverified subscribers
+  app.post("/admin/verify-all-subscribers", async (_req, res) => {
+    try {
+      const { getDb } = await import('../db');
+      const { subscribers } = await import('../../drizzle/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      const db = await getDb();
+      if (!db) {
+        return res.status(500).json({ success: false, message: 'Database not available' });
+      }
+      
+      // Get all active but unverified subscribers
+      const unverified = await db.select().from(subscribers)
+        .where(
+          and(
+            eq(subscribers.active, true),
+            eq(subscribers.verified, false)
+          )
+        );
+      
+      if (unverified.length === 0) {
+        return res.json({ 
+          success: true, 
+          message: 'No unverified subscribers found',
+          count: 0 
+        });
+      }
+      
+      // Verify all of them
+      for (const sub of unverified) {
+        await db.update(subscribers)
+          .set({ 
+            verified: true, 
+            verifiedAt: new Date(),
+            verificationToken: null 
+          })
+          .where(eq(subscribers.id, sub.id));
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully verified ${unverified.length} subscriber(s)`,
+        count: unverified.length,
+        emails: unverified.map(s => s.email)
+      });
+    } catch (error) {
+      console.error('[Admin] Error verifying subscribers:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error verifying subscribers',
+        error: String(error)
+      });
+    }
+  });
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
