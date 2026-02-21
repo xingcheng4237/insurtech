@@ -16,16 +16,15 @@ function generateToken(): string {
 async function sendVerificationEmail(email: string, verificationToken: string, baseUrl: string) {
   try {
     const { generateVerificationEmailHTML } = await import('./emailVerification');
-    const { getEmailService } = await import('./services/emailService');
+    const { emailService } = await import('./services/emailService');
     
-    const emailService = getEmailService();
     const html = generateVerificationEmailHTML(email, verificationToken, baseUrl);
     
-    await emailService.sendEmail(
-      email,
-      'Verify Your Email - Insurtech News Tracker',
-      html
-    );
+    await emailService.sendEmail({
+      to: email,
+      subject: 'Verify Your Email - Insurtech News Tracker',
+      html: html
+    });
     
     console.log(`[Subscription] Verification email sent to ${email}`);
   } catch (error) {
