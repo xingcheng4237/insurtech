@@ -200,7 +200,8 @@ class JobQueue {
           } else {
             console.log(`[NewsCollection] Sending to ${subscribers.length} subscriber(s)...`);
             
-            for (const subscriber of subscribers) {
+            for (let i = 0; i < subscribers.length; i++) {
+              const subscriber = subscribers[i];
               try {
                 const sent = await emailService.sendNewsReport(
                   subscriber.email,
@@ -214,6 +215,11 @@ class JobQueue {
                   console.log(`  ✅ Sent to: ${subscriber.email}`);
                 } else {
                   console.error(`  ❌ Failed to send to: ${subscriber.email}`);
+                }
+                
+                // Rate limiting: Wait 600ms between emails (Resend limit: 2 emails/second)
+                if (i < subscribers.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 600));
                 }
               } catch (error: any) {
                 console.error(`  ❌ Error sending to ${subscriber.email}:`, error?.message);
