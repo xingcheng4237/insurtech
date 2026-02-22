@@ -36,9 +36,9 @@ class EmailService {
       this.resend = new Resend(resendApiKey);
       
       // Configure sender email
-      // Resend requires verified domain, use onboarding@resend.dev for now
-      // To use custom domain, verify it at https://resend.com/domains
-      this.fromEmail = 'onboarding@resend.dev'; // Always use Resend's testing email
+      // Use FROM_EMAIL environment variable for custom domain
+      // Default to Resend's testing email if not set
+      this.fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
       this.fromName = process.env.EMAIL_FROM_NAME || 'Insurtech News Tracker';
       
       this.isConfigured = true;
