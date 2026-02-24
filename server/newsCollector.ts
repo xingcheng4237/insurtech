@@ -81,12 +81,10 @@ export class NewsCollector {
     
     // Global Insurtech (VERIFIED WORKING)
     'https://www.insurtechinsights.com/feed',
-    'https://www.the-digital-insurer.com/feed',
     'https://www.reinsurancene.ws/feed/',
     
     // AI & Innovation Focus (NEW - VERIFIED FEB 2026)
     'https://zelros.com/feed',              // AI/ML in insurance specialist
-    'https://iireporter.com/feed',          // Insurance IT innovation
     
     // M&A & Regulatory News (NEW - VERIFIED FEB 2026)
     'https://www.insurancejournal.com/feed/', // M&A, acquisitions, regulatory
@@ -96,6 +94,8 @@ export class NewsCollector {
     // - https://fintechnews.sg/feed (Too broad - general fintech)
     // - https://www.dig-in.com/rss/topic/insurance (403 Forbidden)
     // - https://www.insurancetimes.co.uk/feed (Invalid XML)
+    // - https://www.the-digital-insurer.com/feed (Timeout issues - Feb 2026)
+    // - https://iireporter.com/feed (403 Forbidden - Feb 2026)
   ];
 
   private searchQueries = [
