@@ -3,9 +3,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import Verify from "@/pages/Verify";
 import Unsubscribe from "@/pages/Unsubscribe";
+import Login from "@/pages/Login";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import AuthGuard from "./_core/components/AuthGuard";
 import Home from "./pages/Home";
 import LatestReport from "./pages/LatestReport";
 import ReportHistory from "./pages/ReportHistory";
@@ -14,17 +16,44 @@ import Jobs from "./pages/Jobs";
 import Schedule from "./pages/Schedule";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/latest"} component={LatestReport} />
-      <Route path={"/history"} component={ReportHistory} />
-      <Route path={"/report/:id"} component={ViewReport} />
-      <Route path={"/jobs"} component={Jobs} />
-      <Route path={"/schedule"} component={Schedule} />
+      {/* Public routes - no authentication required */}
+      <Route path={"/login"} component={Login} />
       <Route path={"/verify"} component={Verify} />
       <Route path={"/unsubscribe"} component={Unsubscribe} />
+
+      {/* Protected routes - require Google OAuth authentication */}
+      <Route path={"/"}>
+        <AuthGuard>
+          <Home />
+        </AuthGuard>
+      </Route>
+      <Route path={"/latest"}>
+        <AuthGuard>
+          <LatestReport />
+        </AuthGuard>
+      </Route>
+      <Route path={"/history"}>
+        <AuthGuard>
+          <ReportHistory />
+        </AuthGuard>
+      </Route>
+      <Route path={"/report/:id"}>
+        <AuthGuard>
+          <ViewReport />
+        </AuthGuard>
+      </Route>
+      <Route path={"/jobs"}>
+        <AuthGuard>
+          <Jobs />
+        </AuthGuard>
+      </Route>
+      <Route path={"/schedule"}>
+        <AuthGuard>
+          <Schedule />
+        </AuthGuard>
+      </Route>
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
