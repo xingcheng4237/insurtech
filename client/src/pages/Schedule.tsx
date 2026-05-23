@@ -329,6 +329,11 @@ export default function Schedule() {
           </Card>
         )}
       </main>
+      <footer className="border-t bg-white/80 mt-8">
+        <div className="container mx-auto px-4 py-4 text-center text-xs text-muted-foreground">
+          {APP_TITLE} &mdash; Weekly Insurtech Intelligence
+        </div>
+      </footer>
     </div>
   );
 }
