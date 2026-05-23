@@ -242,7 +242,9 @@ export default function Schedule() {
                         <div className="text-sm font-medium text-muted-foreground">Cron Expression</div>
                         <div className="text-lg font-mono font-semibold mt-1">{status.cronExpression}</div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          Runs every Friday at the configured time
+                          {status.cronExpression?.split(' ')[4] === '*'
+                            ? 'Runs every day at the configured time'
+                            : `Runs every ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][parseInt(status.cronExpression?.split(' ')[4] ?? '0')] ?? 'week'} at the configured time`}
                         </div>
                       </div>
                     </div>
@@ -284,6 +286,16 @@ export default function Schedule() {
                     </code>
                     <span className="text-muted-foreground">
                       IANA timezone, e.g., <code className="bg-gray-100 px-1 rounded">Asia/Singapore</code>
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    <code className="bg-gray-100 px-2 py-1 rounded font-mono text-xs min-w-[180px]">
+                      SCHEDULE_DAY_OF_WEEK
+                    </code>
+                    <span className="text-muted-foreground">
+                      Day to run: <code className="bg-gray-100 px-1 rounded">daily</code> for every day, or a number
+                      <code className="bg-gray-100 px-1 rounded ml-1">0</code>–<code className="bg-gray-100 px-1 rounded">6</code> (0=Sun, 5=Fri, 6=Sat).
+                      Currently set to <code className="bg-gray-100 px-1 rounded">5</code> (Friday).
                     </span>
                   </div>
                   <div className="flex gap-3">

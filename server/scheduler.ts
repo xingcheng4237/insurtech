@@ -1,6 +1,6 @@
 /**
  * Scheduled Job Service
- * Handles automated daily news collection using node-cron
+ * Handles automated weekly (or daily) news collection using node-cron
  */
 
 import cron from 'node-cron';
@@ -178,18 +178,32 @@ class Scheduler {
     let nextMonth = currentMonth;
     let nextYear = currentYear;
     
-    // If scheduled time has passed today in target timezone, schedule for tomorrow
-    if (hours < currentHour || (hours === currentHour && minutes <= currentMinute)) {
+    // Determine target day-of-week (0=Sun … 6=Sat), or -1 for daily
+    const targetDow = this.config.dayOfWeek === 'daily' ? -1 : parseInt(this.config.dayOfWeek);
+
+    // Helper to advance date by one day with month/year rollover
+    const advanceDay = () => {
       nextDay++;
-      // Handle month/year rollover
       const daysInMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
       if (nextDay > daysInMonth) {
         nextDay = 1;
         nextMonth++;
-        if (nextMonth > 11) {
-          nextMonth = 0;
-          nextYear++;
-        }
+        if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+      }
+    };
+
+    // If scheduled time has passed today in target timezone, advance at least one day
+    if (hours < currentHour || (hours === currentHour && minutes <= currentMinute)) {
+      advanceDay();
+    }
+
+    // If a specific day-of-week is required, keep advancing until we hit it
+    if (targetDow >= 0) {
+      // Calculate what day-of-week the candidate date falls on
+      const getDow = () => new Date(nextYear, nextMonth, nextDay).getDay();
+      let safety = 0;
+      while (getDow() !== targetDow && safety++ < 7) {
+        advanceDay();
       }
     }
     
@@ -236,7 +250,7 @@ class Scheduler {
       enabled: this.config.enabled,
       nextRun: this.getNextRunTime(),
       lastRun: this.lastRunTime?.toISOString() || null,
-      cronExpression: this.config.enabled ? this.timeToCron(this.config.time) : null,
+      cronExpression: this.config.enabled ? this.timeToCron(this.config.time, this.config.dayOfWeek) : null,
       timezone: this.config.timezone,
       mode: this.config.mode,
     };
