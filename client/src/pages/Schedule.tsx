@@ -87,6 +87,9 @@ export default function Schedule() {
               <Link href="/history">
                 <Button variant="ghost">History</Button>
               </Link>
+              <Link href="/growth">
+                <Button variant="ghost">Growth</Button>
+              </Link>
             </nav>
           </div>
         </div>
@@ -97,7 +100,7 @@ export default function Schedule() {
         <div className="mb-6">
           <h2 className="text-3xl font-bold mb-2">Schedule Configuration</h2>
           <p className="text-muted-foreground">
-            Automated daily news collection and email delivery
+            Automated weekly news collection and email delivery
           </p>
         </div>
 
@@ -239,7 +242,7 @@ export default function Schedule() {
                         <div className="text-sm font-medium text-muted-foreground">Cron Expression</div>
                         <div className="text-lg font-mono font-semibold mt-1">{status.cronExpression}</div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          Runs daily at the configured time
+                          Runs every Friday at the configured time
                         </div>
                       </div>
                     </div>

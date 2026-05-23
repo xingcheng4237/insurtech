@@ -75,6 +75,9 @@ export default function LatestReport() {
               <Link href="/schedule">
                 <Button variant="ghost">Schedule</Button>
               </Link>
+              <Link href="/growth">
+                <Button variant="ghost">Growth</Button>
+              </Link>
               <Button 
                 variant="outline" 
                 className="gap-2"
@@ -117,7 +120,7 @@ export default function LatestReport() {
             <Newspaper className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-semibold mb-2">No Reports Yet</h2>
             <p className="text-muted-foreground mb-6">
-              Click "Collect News" to generate your first daily digest.
+              Click "Collect News" to generate your first weekly digest.
             </p>
             <div className="flex gap-3 justify-center">
               <Button 

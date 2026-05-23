@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Newspaper, History, TrendingUp } from "lucide-react";
+import { Newspaper, History, TrendingUp, Target } from "lucide-react";
 import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { APP_TITLE } from "@/const";
 import { Link } from "wouter";
@@ -26,6 +26,9 @@ export default function Home() {
               <Link href="/schedule">
                 <Button variant="ghost">Schedule</Button>
               </Link>
+              <Link href="/growth">
+                <Button variant="ghost">Growth</Button>
+              </Link>
             </nav>
           </div>
         </div>
@@ -35,10 +38,10 @@ export default function Home() {
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-5xl font-bold tracking-tight">
-            Your Daily Insurtech Intelligence
+            Your Weekly Insurtech Intelligence
           </h2>
           <p className="text-xl text-muted-foreground">
-            AI-powered news digest covering life & healthcare insurance, digital platforms, 
+            AI-powered weekly digest covering life &amp; healthcare insurance, digital platforms,
             embedded insurance, AI/ML, regulatory changes, and funding across Asia-Pacific.
           </p>
           <div className="flex gap-4 justify-center pt-4">
@@ -65,7 +68,7 @@ export default function Home() {
 
       {/* Features */}
       <section className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           <Card>
             <CardHeader>
               <TrendingUp className="h-10 w-10 mb-2 text-primary" />
@@ -73,7 +76,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                GPT-4 analyzes news articles to provide executive summaries, key developments, 
+                GPT-4 analyzes news articles to provide executive summaries, key developments,
                 and strategic insights tailored for insurtech leaders.
               </CardDescription>
             </CardContent>
@@ -86,7 +89,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Tracks 11 Asia-Pacific markets with 99+ search queries across Google News 
+                Tracks 11 Asia-Pacific markets with 99+ search queries across Google News
                 and 7 premium RSS feeds for maximum coverage.
               </CardDescription>
             </CardContent>
@@ -95,12 +98,25 @@ export default function Home() {
           <Card>
             <CardHeader>
               <History className="h-10 w-10 mb-2 text-primary" />
-              <CardTitle>Daily Delivery</CardTitle>
+              <CardTitle>Weekly Delivery</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Automated daily collection at 9:00 AM SGT with email delivery and 
-                web access to current and historical reports.
+                Automated weekly collection every Friday at 9:00 AM SGT with email delivery
+                and web access to current and historical reports.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Target className="h-10 w-10 mb-2 text-primary" />
+              <CardTitle>AHA Relevance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Articles are auto-flagged for relevance to wellness insurance, embedded
+                insurance, and APAC market transformation — your strategic priorities.
               </CardDescription>
             </CardContent>
           </Card>

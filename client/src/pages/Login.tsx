@@ -75,7 +75,7 @@ export default function Login() {
             <span className="text-2xl font-semibold tracking-tight">{APP_TITLE}</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            AI-powered daily insurtech intelligence
+            AI-powered weekly insurtech intelligence
           </p>
         </div>
 

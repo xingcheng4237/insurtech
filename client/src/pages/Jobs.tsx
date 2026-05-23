@@ -64,6 +64,9 @@ export default function Jobs() {
               <Link href="/history">
                 <Button variant="ghost">History</Button>
               </Link>
+              <Link href="/growth">
+                <Button variant="ghost">Growth</Button>
+              </Link>
               <Button 
                 variant="outline" 
                 className="gap-2"

@@ -42,6 +42,9 @@ export default function ReportHistory() {
               <Link href="/schedule">
                 <Button variant="ghost">Schedule</Button>
               </Link>
+              <Link href="/growth">
+                <Button variant="ghost">Growth</Button>
+              </Link>
             </nav>
           </div>
         </div>
@@ -53,7 +56,7 @@ export default function ReportHistory() {
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2">Report History</h2>
             <p className="text-muted-foreground">
-              Browse all past daily insurtech news digests
+              Browse all past weekly insurtech news digests
             </p>
           </div>
 
@@ -73,7 +76,7 @@ export default function ReportHistory() {
                         <div className="flex-1">
                           <CardTitle className="flex items-center gap-2">
                             <FileText className="h-5 w-5" />
-                            Daily Digest - {formatDate(report.reportDate)}
+                            Weekly Digest — {formatDate(report.reportDate)}
                           </CardTitle>
                           <CardDescription className="mt-2 flex items-center gap-4">
                             <span className="flex items-center gap-1">

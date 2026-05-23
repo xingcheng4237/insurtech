@@ -34,6 +34,9 @@ export default function ViewReport() {
                   Back to History
                 </Button>
               </Link>
+              <Link href="/growth">
+                <Button variant="ghost">Growth</Button>
+              </Link>
             </nav>
           </div>
         </div>
