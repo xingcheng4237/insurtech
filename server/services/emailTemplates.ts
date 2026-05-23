@@ -25,13 +25,20 @@ export function generateDailyNewsEmail(
     day: 'numeric',
   });
 
+  // Calculate week range (Mon-Fri)
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun, 5=Fri
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  const weekRange = `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Insurtech News Daily Digest - ${today}</title>
+  <title>Insurtech News Weekly Digest - ${today}</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -159,8 +166,8 @@ export function generateDailyNewsEmail(
 <body>
   <div class="container">
     <div class="header">
-      <h1>📰 Insurtech News Daily Digest</h1>
-      <p class="date">${today}</p>
+      <h1>📰 Insurtech News Weekly Digest</h1>
+      <p class="date">${today} &nbsp;·&nbsp; Week of ${weekRange}</p>
     </div>
 
     <div class="stats">
@@ -171,6 +178,10 @@ export function generateDailyNewsEmail(
       <div class="stats-item">
         <span class="stats-number">${Object.keys(categorizedArticles).length}</span>
         <span>Categories</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-number">${articles.filter((a: any) => a.ahaRelevant).length}</span>
+        <span>AHA-Relevant</span>
       </div>
       <div class="stats-item">
         <span class="stats-number">11</span>
@@ -212,7 +223,7 @@ export function generateDailyNewsEmail(
     `).join('')}
 
     <div class="footer">
-      <p><strong>Insurtech News Tracker</strong> - Daily Intelligence for Insurance Leaders</p>
+      <p><strong>Insurtech News Tracker</strong> - Weekly Intelligence for Insurance Leaders</p>
       <p>Powered by AI • Covering 11 Asia-Pacific Markets</p>
       <p style="margin-top: 15px;">
         <a href="#" style="color: #95a5a6; text-decoration: none;">Unsubscribe</a> | 

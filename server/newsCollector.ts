@@ -17,6 +17,7 @@ interface NewsItem {
   snippet: string;
   category?: string;
   region?: string;
+  ahaRelevant?: boolean; // Flagged as relevant to AHA's transformation pillars
 }
 
 interface CollectionResult {
@@ -204,11 +205,12 @@ export class NewsCollector {
         for (const item of items.slice(0, 10)) {
           const pubDate = item.pubDate?.[0] || '';
           
-          // Filter to last 48 hours (relaxed from 24h)
+          // Filter to last 7 days (weekly digest window)
+          const lookbackHours = parseInt(process.env.NEWS_LOOKBACK_HOURS || '168'); // 7 days default
           if (pubDate) {
             const pubDateTime = new Date(pubDate);
             const hoursSince = (Date.now() - pubDateTime.getTime()) / (1000 * 60 * 60);
-            if (hoursSince > 48) continue;
+            if (hoursSince > lookbackHours) continue;
           }
 
           articles.push({
@@ -260,11 +262,12 @@ export class NewsCollector {
         for (const item of items.slice(0, 15)) {
           const pubDate = item.pubDate?.[0] || '';
           
-          // Filter to last 48 hours
+          // Filter to last 7 days (weekly digest window)
+          const lookbackHoursRss = parseInt(process.env.NEWS_LOOKBACK_HOURS || '168');
           if (pubDate) {
             const pubDateTime = new Date(pubDate);
             const hoursSince = (Date.now() - pubDateTime.getTime()) / (1000 * 60 * 60);
-            if (hoursSince > 48) continue;
+            if (hoursSince > lookbackHoursRss) continue;
           }
 
           const title = item.title?.[0] || '';
@@ -387,6 +390,34 @@ Return ONLY a JSON array of article numbers (1-${articles.length}) for the most 
     return articles.slice(0, 15);
   }
 
+  /**
+   * Flag articles that are relevant to AHA's transformation pillars:
+   * wellness insurance, embedded insurance, APAC markets
+   */
+  flagAHARelevance(articles: NewsItem[]): NewsItem[] {
+    const ahaKeywords = [
+      // Wellness insurance
+      'wellness', 'preventive', 'prevention', 'chronic disease', 'mental health',
+      'wearable', 'health data', 'lifestyle', 'behaviour', 'behavioral',
+      // Embedded insurance
+      'embedded', 'bancassurance', 'api', 'distribution', 'platform', 'ecosystem',
+      'white label', 'white-label', 'partnership', 'super app', 'fintech',
+      // APAC markets
+      'singapore', 'malaysia', 'indonesia', 'thailand', 'philippines', 'vietnam',
+      'india', 'hong kong', 'taiwan', 'south korea', 'japan', 'china', 'apac',
+      'asia pacific', 'southeast asia', 'asean',
+      // AHA-specific transformation themes
+      'digital health', 'health insurance', 'life insurance', 'critical illness',
+      'group insurance', 'employee benefits', 'digital transformation',
+    ];
+
+    return articles.map(article => {
+      const text = (article.title + ' ' + article.snippet).toLowerCase();
+      const relevant = ahaKeywords.some(kw => text.includes(kw));
+      return { ...article, ahaRelevant: relevant };
+    });
+  }
+
   async generateAIAnalysis(articles: NewsItem[]): Promise<string> {
     if (articles.length === 0) {
       return 'No articles to analyze.';
@@ -396,12 +427,17 @@ Return ONLY a JSON array of article numbers (1-${articles.length}) for the most 
       `${i + 1}. ${a.title}\n   Source: ${a.source}\n   Published: ${a.publishedDate}\n   ${a.snippet.substring(0, 300)}`
     ).join('\n\n');
 
-    const prompt = `You are an insurtech industry analyst. Analyze these ${articles.length} news articles and provide:
+    const prompt = `You are an insurtech industry analyst advising a Chief Product Officer at AHA (Asia's leading digital health and life insurance platform). Analyze these ${articles.length} news articles and provide:
 
 1. **Executive Summary** (3-4 key highlights)
 2. **Key Developments** (5-7 bullet points)
 3. **Strategic Insights** (3-4 actionable insights for a CPO at a Singapore insurtech)
 4. **Geographic Highlights** (trends by region)
+5. **Relevance to AHA** — Identify 2-4 articles most relevant to AHA's three transformation pillars:
+   - **Wellness Insurance**: preventive health, wearables, chronic disease management, behavioral data
+   - **Embedded Insurance**: API-driven distribution, bancassurance, platform ecosystems, super apps
+   - **APAC Markets**: Singapore, Malaysia, Indonesia, Thailand, Philippines, Vietnam, India, Hong Kong
+   For each relevant article, explain in 1-2 sentences why it matters to AHA specifically.
 
 PRIORITY FOCUS:
 - Medicare tech and healthtech insurance innovations

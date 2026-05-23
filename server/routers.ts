@@ -217,6 +217,58 @@ export const appRouter = router({
       return { html, stats };
     }),
   }),
+
+  // Public subscriber growth stats (no auth required)
+  growth: router({
+    stats: publicProcedure.query(async () => {
+      const { getDb } = await import('./db');
+      const { subscribers } = await import('../drizzle/schema');
+      const db = await getDb();
+      if (!db) {
+        return { total: 0, verified: 0, weeklyGrowth: [], milestones: [] };
+      }
+
+      const all = await db.select().from(subscribers);
+      const active = all.filter(s => s.active);
+      const verified = active.filter(s => s.verified);
+
+      // Build weekly cumulative growth from subscribedAt dates
+      const sorted = [...active].sort((a, b) =>
+        new Date(a.subscribedAt).getTime() - new Date(b.subscribedAt).getTime()
+      );
+
+      // Group by ISO week (Mon-Sun)
+      const weekMap = new Map<string, number>();
+      for (const sub of sorted) {
+        const d = new Date(sub.subscribedAt);
+        // Get Monday of that week
+        const day = d.getDay();
+        const monday = new Date(d);
+        monday.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+        const key = monday.toISOString().substring(0, 10);
+        weekMap.set(key, (weekMap.get(key) || 0) + 1);
+      }
+
+      // Build cumulative series
+      const weeklyGrowth: { week: string; newSubs: number; total: number }[] = [];
+      let cumulative = 0;
+      for (const [week, count] of Array.from(weekMap.entries()).sort()) {
+        cumulative += count;
+        weeklyGrowth.push({ week, newSubs: count, total: cumulative });
+      }
+
+      // Milestones
+      const milestones = [1, 5, 10, 25, 50, 100].filter(n => verified.length >= n);
+
+      return {
+        total: active.length,
+        verified: verified.length,
+        weeklyGrowth,
+        milestones,
+        latestWeekNewSubs: weeklyGrowth.length > 0 ? weeklyGrowth[weeklyGrowth.length - 1].newSubs : 0,
+      };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

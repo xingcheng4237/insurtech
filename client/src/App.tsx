@@ -14,6 +14,7 @@ import ReportHistory from "./pages/ReportHistory";
 import ViewReport from "./pages/ViewReport";
 import Jobs from "./pages/Jobs";
 import Schedule from "./pages/Schedule";
+import SubscriberGrowth from "./pages/SubscriberGrowth";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/login"} component={Login} />
       <Route path={"/verify"} component={Verify} />
       <Route path={"/unsubscribe"} component={Unsubscribe} />
+      <Route path={"/growth"} component={SubscriberGrowth} />
 
       {/* Protected routes - require Google OAuth authentication */}
       <Route path={"/"}>

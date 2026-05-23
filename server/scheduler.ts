@@ -11,6 +11,7 @@ interface ScheduleConfig {
   time: string; // HH:MM format (24-hour)
   timezone: string;
   mode: 'production' | 'test';
+  dayOfWeek: string; // 'daily' or 0-6 (0=Sunday, 5=Friday)
 }
 
 interface ScheduleStatus {
@@ -34,6 +35,7 @@ class Scheduler {
       time: process.env.SCHEDULE_TIME || '09:00',
       timezone: process.env.SCHEDULE_TIMEZONE || 'Asia/Singapore',
       mode: (process.env.SCHEDULE_MODE as 'production' | 'test') || 'production',
+      dayOfWeek: process.env.SCHEDULE_DAY_OF_WEEK || 'daily', // 'daily' or '5' for Friday
     };
 
     this.initialize();
@@ -48,10 +50,13 @@ class Scheduler {
       return;
     }
 
-    const cronExpression = this.timeToCron(this.config.time);
+    const cronExpression = this.timeToCron(this.config.time, this.config.dayOfWeek);
+    const scheduleDesc = this.config.dayOfWeek === 'daily'
+      ? 'Every day'
+      : `Every ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][parseInt(this.config.dayOfWeek)] || 'day'}`;
     
     console.log('📅 Scheduler: ENABLED');
-    console.log(`   Time: ${this.config.time} (${this.config.timezone})`);
+    console.log(`   Schedule: ${scheduleDesc} at ${this.config.time} (${this.config.timezone})`);
     console.log(`   Cron: ${cronExpression}`);
     console.log(`   Mode: ${this.config.mode.toUpperCase()}`);
 
@@ -75,9 +80,10 @@ class Scheduler {
   }
 
   /**
-   * Convert HH:MM time to cron expression
+   * Convert HH:MM time (and optional day-of-week) to cron expression
+   * dayOfWeek: 'daily' = every day, '0'-'6' = specific day (0=Sun, 5=Fri)
    */
-  private timeToCron(time: string): string {
+  private timeToCron(time: string, dayOfWeek: string = 'daily'): string {
     const [hours, minutes] = time.split(':').map(Number);
     
     if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
@@ -85,8 +91,8 @@ class Scheduler {
     }
 
     // Cron format: minute hour day month weekday
-    // Run every day at specified time
-    return `${minutes} ${hours} * * *`;
+    const dow = dayOfWeek === 'daily' ? '*' : dayOfWeek;
+    return `${minutes} ${hours} * * ${dow}`;
   }
 
   /**
