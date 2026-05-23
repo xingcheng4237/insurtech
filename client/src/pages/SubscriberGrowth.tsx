@@ -1,62 +1,31 @@
 /**
- * Public Subscriber Growth Page
- * Shows cumulative subscriber growth over time — no auth required.
+ * Public Subscriber Growth Page — no auth required.
  * Designed to be linkable from chengxing.org as professional CPO intel.
+ * Matches the app-wide design system: Tailwind + shadcn/ui, gradient bg, sticky header.
  */
-import { trpc } from '@/lib/trpc';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";
+import { Newspaper, TrendingUp, Users, CheckCircle, CalendarDays } from "lucide-react";
+import { Link } from "wouter";
+import { APP_TITLE } from "@/const";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Area,
-  AreaChart,
-} from 'recharts';
-
-const BRAND_BLUE = '#2563EB';
-const LIGHT_BLUE = '#EFF6FF';
-
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
-  return (
-    <div
-      style={{
-        background: '#fff',
-        border: '1px solid #E5E7EB',
-        borderRadius: 12,
-        padding: '24px 28px',
-        minWidth: 140,
-        flex: 1,
-      }}
-    >
-      <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 6, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 36, fontWeight: 700, color: '#111827', lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-}
+} from "recharts";
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div
-      style={{
-        background: '#fff',
-        border: '1px solid #E5E7EB',
-        borderRadius: 8,
-        padding: '10px 14px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        fontSize: 13,
-      }}
-    >
-      <div style={{ fontWeight: 600, marginBottom: 4, color: '#374151' }}>
-        Week of {label}
-      </div>
-      <div style={{ color: BRAND_BLUE }}>Total: <strong>{payload[0]?.value}</strong></div>
+    <div className="rounded-lg border bg-white px-3 py-2 shadow-md text-sm">
+      <p className="font-semibold text-foreground mb-1">Week of {label}</p>
+      <p className="text-primary">Total: <span className="font-bold">{payload[0]?.value}</span></p>
       {payload[1] && (
-        <div style={{ color: '#10B981' }}>New this week: <strong>{payload[1]?.value}</strong></div>
+        <p className="text-emerald-600">New this week: <span className="font-bold">{payload[1]?.value}</span></p>
       )}
     </div>
   );
@@ -72,280 +41,245 @@ export default function SubscriberGrowth() {
   })) ?? [];
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#F9FAFB',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          background: '#fff',
-          borderBottom: '1px solid #E5E7EB',
-          padding: '20px 0',
-        }}
-      >
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                background: BRAND_BLUE,
-                borderRadius: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 18,
-              }}
-            >
-              📰
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Header — matches all other pages exactly */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Newspaper className="h-6 w-6" />
+              <h1 className="text-xl font-semibold">{APP_TITLE}</h1>
             </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 17, color: '#111827' }}>
-                Insurtech News Tracker
-              </div>
-              <div style={{ fontSize: 12, color: '#6B7280' }}>
-                Subscriber Growth — Public Dashboard
-              </div>
-            </div>
+            <nav className="flex gap-4">
+              <Link href="/">
+                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  Home
+                </span>
+              </Link>
+              <Link href="/latest">
+                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  Latest Report
+                </span>
+              </Link>
+            </nav>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main content */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
-          Newsletter Growth
-        </h1>
-        <p style={{ color: '#6B7280', fontSize: 15, marginBottom: 36, maxWidth: 580 }}>
-          Weekly insurtech intelligence for insurance leaders across Asia-Pacific.
-          Tracking subscriber growth since launch.
-        </p>
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
 
-        {isLoading && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#9CA3AF' }}>
-            Loading growth data…
-          </div>
-        )}
-
-        {error && (
-          <div
-            style={{
-              background: '#FEF2F2',
-              border: '1px solid #FECACA',
-              borderRadius: 8,
-              padding: '16px 20px',
-              color: '#DC2626',
-            }}
-          >
-            Could not load subscriber data. Please try again later.
-          </div>
-        )}
-
-        {data && (
-          <>
-            {/* Stat cards */}
-            <div style={{ display: 'flex', gap: 16, marginBottom: 36, flexWrap: 'wrap' }}>
-              <StatCard label="Total Subscribers" value={data.total} sub="Active" />
-              <StatCard label="Verified" value={data.verified} sub="Email confirmed" />
-              <StatCard
-                label="Latest Week"
-                value={`+${data.latestWeekNewSubs}`}
-                sub="New subscribers"
-              />
-              <StatCard
-                label="Weeks Tracked"
-                value={data.weeklyGrowth.length}
-                sub="Since launch"
-              />
+          {/* Page title */}
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              <h2 className="text-3xl font-bold tracking-tight">Newsletter Growth</h2>
             </div>
+            <p className="text-muted-foreground max-w-xl">
+              Weekly insurtech intelligence for insurance leaders across Asia-Pacific.
+              Tracking subscriber growth since launch.
+            </p>
+          </div>
 
-            {/* Growth chart */}
-            {chartData.length > 0 ? (
-              <div
-                style={{
-                  background: '#fff',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: 12,
-                  padding: '28px 24px 16px',
-                  marginBottom: 32,
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 600,
-                    fontSize: 15,
-                    color: '#374151',
-                    marginBottom: 24,
-                  }}
-                >
-                  Cumulative Subscriber Growth
-                </div>
-                <ResponsiveContainer width="100%" height={280}>
-                  <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                    <defs>
-                      <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={BRAND_BLUE} stopOpacity={0.15} />
-                        <stop offset="95%" stopColor={BRAND_BLUE} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                    <XAxis
-                      dataKey="week"
-                      tick={{ fontSize: 11, fill: '#9CA3AF' }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: '#9CA3AF' }}
-                      tickLine={false}
-                      axisLine={false}
-                      allowDecimals={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area
-                      type="monotone"
-                      dataKey="total"
-                      stroke={BRAND_BLUE}
-                      strokeWidth={2.5}
-                      fill="url(#blueGrad)"
-                      dot={false}
-                      activeDot={{ r: 5, fill: BRAND_BLUE }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div
-                style={{
-                  background: LIGHT_BLUE,
-                  border: `1px solid ${BRAND_BLUE}33`,
-                  borderRadius: 12,
-                  padding: '40px',
-                  textAlign: 'center',
-                  color: BRAND_BLUE,
-                  marginBottom: 32,
-                }}
-              >
-                <div style={{ fontSize: 32, marginBottom: 12 }}>📈</div>
-                <div style={{ fontWeight: 600, fontSize: 16 }}>Growth tracking starts here</div>
-                <div style={{ fontSize: 13, marginTop: 6, color: '#6B7280' }}>
-                  Subscribe to start tracking weekly growth.
-                </div>
-              </div>
-            )}
+          {/* Loading state */}
+          {isLoading && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="pt-6">
+                    <div className="h-8 w-16 bg-muted animate-pulse rounded mb-2" />
+                    <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
-            {/* Milestones */}
-            {data.milestones.length > 0 && (
-              <div
-                style={{
-                  background: '#fff',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: 12,
-                  padding: '24px',
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: 15, color: '#374151', marginBottom: 16 }}>
-                  Milestones Reached 🎉
-                </div>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  {data.milestones.map(m => (
-                    <div
-                      key={m}
-                      style={{
-                        background: LIGHT_BLUE,
-                        border: `1px solid ${BRAND_BLUE}33`,
-                        borderRadius: 8,
-                        padding: '8px 16px',
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: BRAND_BLUE,
-                      }}
-                    >
-                      {m} subscribers ✓
+          {/* Error state */}
+          {error && (
+            <Card className="border-destructive/50 bg-destructive/5 mb-8">
+              <CardContent className="pt-6 text-destructive text-sm">
+                Could not load subscriber data. Please try again later.
+              </CardContent>
+            </Card>
+          )}
+
+          {data && (
+            <>
+              {/* Stat cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <Users className="h-4 w-4" />
+                      Total Subscribers
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{data.total}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Active</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <CheckCircle className="h-4 w-4" />
+                      Verified
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{data.verified}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Email confirmed</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <TrendingUp className="h-4 w-4" />
+                      Latest Week
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">+{data.latestWeekNewSubs}</p>
+                    <p className="text-xs text-muted-foreground mt-1">New subscribers</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <CalendarDays className="h-4 w-4" />
+                      Weeks Tracked
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{data.weeklyGrowth.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Since launch</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Growth chart */}
+              {chartData.length > 0 ? (
+                <Card className="mb-8">
+                  <CardHeader>
+                    <CardTitle className="text-base">Cumulative Subscriber Growth</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={260}>
+                      <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                        <defs>
+                          <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis
+                          dataKey="week"
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                          tickLine={false}
+                          axisLine={false}
+                          allowDecimals={false}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="total"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          fill="url(#growthGrad)"
+                          dot={false}
+                          activeDot={{ r: 4, fill: "hsl(var(--primary))" }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="mb-8 border-primary/20 bg-primary/5">
+                  <CardContent className="pt-8 pb-8 text-center">
+                    <TrendingUp className="h-10 w-10 text-primary mx-auto mb-3" />
+                    <p className="font-semibold text-foreground">Growth tracking starts here</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Subscribe to start tracking weekly growth.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Milestones */}
+              {data.milestones.length > 0 && (
+                <Card className="mb-8">
+                  <CardHeader>
+                    <CardTitle className="text-base">Milestones Reached 🎉</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {data.milestones.map(m => (
+                        <span
+                          key={m}
+                          className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-sm font-medium text-primary"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          {m} subscribers
+                        </span>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Subscribe CTA */}
-            <div
-              style={{
-                marginTop: 40,
-                background: BRAND_BLUE,
-                borderRadius: 12,
-                padding: '32px',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 24,
-                flexWrap: 'wrap',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>
-                  Get the weekly digest
-                </div>
-                <div style={{ fontSize: 14, opacity: 0.85 }}>
-                  Every Friday — top insurtech news curated for APAC insurance leaders.
-                </div>
-              </div>
-              <a
-                href="https://insurtechnewstracker.chengxing.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: '#fff',
-                  color: BRAND_BLUE,
-                  fontWeight: 600,
-                  fontSize: 14,
-                  padding: '10px 22px',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Subscribe →
-              </a>
-            </div>
-          </>
-        )}
+              {/* Subscribe CTA */}
+              <Card className="bg-primary text-primary-foreground border-0">
+                <CardContent className="pt-6 pb-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="font-semibold text-lg">Get the weekly digest</p>
+                      <p className="text-sm opacity-80 mt-1">
+                        Every Friday — top insurtech news curated for APAC insurance leaders.
+                      </p>
+                    </div>
+                    <a
+                      href="https://insurtechnewstracker.chengxing.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-white/90 transition-colors"
+                    >
+                      Subscribe →
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+      </main>
 
-        {/* Footer */}
-        <div
-          style={{
-            marginTop: 48,
-            paddingTop: 24,
-            borderTop: '1px solid #E5E7EB',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 8,
-          }}
-        >
-          <div style={{ fontSize: 12, color: '#9CA3AF' }}>
-            © {new Date().getFullYear()} Insurtech News Tracker · Built by{' '}
+      {/* Footer — matches Home.tsx exactly */}
+      <footer className="border-t mt-20">
+        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
+          <p>
+            Insurtech News Tracker &bull; Powered by AI &bull; {new Date().getFullYear()} &bull;{" "}
             <a
               href="https://chengxing.org"
-              style={{ color: BRAND_BLUE, textDecoration: 'none' }}
+              className="hover:text-foreground transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Xing Cheng
+              chengxing.org
             </a>
-          </div>
-          <div style={{ fontSize: 12, color: '#9CA3AF' }}>
-            Covering 11 APAC markets · Powered by AI
-          </div>
+          </p>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
