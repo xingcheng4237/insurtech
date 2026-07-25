@@ -86,7 +86,7 @@ DATABASE_URL=(auto-configured)
 NODE_ENV=production
 
 # AI Analysis
-OPENAI_API_KEY=sk-proj-YOUR_KEY_HERE
+OPENAI_API_KEY=sk-proj-YOUR_OPENAI_KEY_HERE
 
 # Email Delivery
 RESEND_API_KEY=re_YOUR_KEY_HERE

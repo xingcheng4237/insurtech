@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -20,7 +20,8 @@ export const appRouter = router({
   // News collection and reports
   news: router({
     // Trigger news collection as background job (PRODUCTION MODE - sends to all subscribers)
-    collect: publicProcedure.mutation(async () => {
+    // Restricted to admin users to prevent unauthorised email dispatch
+    collect: adminProcedure.mutation(async () => {
       const { jobQueue } = await import('./jobQueue');
       const jobId = await jobQueue.addJob('news_collection', false); // Production mode
       
@@ -33,7 +34,8 @@ export const appRouter = router({
     }),
     
     // Trigger TEST news collection (sends only to xingcheng4237@gmail.com)
-    testCollect: publicProcedure.mutation(async () => {
+    // Restricted to admin users
+    testCollect: adminProcedure.mutation(async () => {
       const { jobQueue } = await import('./jobQueue');
       const jobId = await jobQueue.addJob('news_collection', true); // Test mode
       
@@ -162,7 +164,8 @@ export const appRouter = router({
     }),
     
     // Admin: Verify all unverified subscribers (for migration)
-    verifyAll: publicProcedure.mutation(async () => {
+    // Restricted to admin users
+    verifyAll: adminProcedure.mutation(async () => {
       const { getDb } = await import('./db');
       const { subscribers } = await import('../drizzle/schema');
       const { eq, and } = await import('drizzle-orm');
