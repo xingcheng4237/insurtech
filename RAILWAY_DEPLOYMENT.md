@@ -4,6 +4,8 @@
 
 Complete guide for deploying the Insurtech News Tracker to Railway with all features enabled.
 
+**🌐 Live Public URL:** https://insurtechnewstracker.chengxing.org
+
 ---
 
 ## 🚀 Quick Start
