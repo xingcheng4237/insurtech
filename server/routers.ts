@@ -221,6 +221,34 @@ export const appRouter = router({
     }),
   }),
 
+  // One-time admin bootstrap: promote a user to admin by email
+  // Protected by BOOTSTRAP_SECRET env var; remove after first use
+  admin: router({
+    bootstrap: publicProcedure
+      .input((input: unknown) => {
+        if (typeof input !== 'object' || input === null) throw new Error('Invalid input');
+        const { email, secret } = input as { email?: unknown; secret?: unknown };
+        if (typeof email !== 'string' || !email.includes('@')) throw new Error('Valid email required');
+        if (typeof secret !== 'string') throw new Error('Secret required');
+        return { email, secret };
+      })
+      .mutation(async ({ input }) => {
+        const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
+        if (!bootstrapSecret || input.secret !== bootstrapSecret) {
+          throw new Error('Invalid bootstrap secret');
+        }
+        const { getDb } = await import('./db');
+        const { users } = await import('../drizzle/schema');
+        const { eq } = await import('drizzle-orm');
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        const result = await db.update(users)
+          .set({ role: 'admin' })
+          .where(eq(users.email, input.email.toLowerCase()));
+        return { success: true, message: `Promoted ${input.email} to admin` };
+      }),
+  }),
+
   // Public subscriber growth stats (no auth required)
   growth: router({
     stats: publicProcedure.query(async () => {
