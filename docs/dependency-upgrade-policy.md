@@ -6,9 +6,9 @@ Every dependency update, including upgrades to **Express**, its middleware, and 
 
 ## Automated update pull requests
 
-Dependabot checks npm dependencies weekly on Monday at 01:00 Singapore time. It assigns update pull requests to `xingcheng4237` and labels them `dependencies` and `automated`.
+Dependabot checks npm packages and GitHub Actions dependencies weekly on Monday at 01:00 Singapore time. It assigns update pull requests to `xingcheng4237` and labels them `dependencies` and `automated`. Action-update pull requests also receive the `github-actions` label.
 
-Updates affecting the Express runtime family are grouped together so that changes to `express`, `@types/express`, `express-*`, `body-parser`, `qs`, or `path-to-regexp` receive a single focused review. Minor and patch updates for other production and development dependencies are grouped separately. Major upgrades remain isolated for deliberate review.
+Updates affecting the Express runtime family are grouped together so that changes to `express`, `@types/express`, `express-*`, `body-parser`, `qs`, or `path-to-regexp` receive a single focused review. Minor and patch updates for other production and development dependencies are grouped separately. Major upgrades remain isolated for deliberate review. GitHub Actions updates remain in separate reviewable pull requests, preventing workflow-runtime changes from being bundled with application packages.
 
 ## Mandatory regression gate
 
@@ -30,6 +30,6 @@ pnpm test:dependency-upgrade
 
 ## Review and merge rules
 
-Do not merge an automated update pull request until both `Dependency upgrade regression` and `Dependency review` are successful. Major runtime upgrades, especially Express and authentication, routing, scheduling, or database packages, require a manual staging check of Google SSO, SPA navigation, protected reports, admin controls, cron authorization, and application health before merge.
+Do not merge an automated update pull request until both `Dependency upgrade regression` and `Dependency review` are successful. Major runtime upgrades, especially Express and authentication, routing, scheduling, database packages, or GitHub Actions major versions, require a manual staging check of Google SSO, SPA navigation, protected reports, admin controls, cron authorization, application health, and CI workflow execution before merge.
 
 If the regression gate fails, retain the pull request for investigation or close it; do not work around the failure by weakening the checks.

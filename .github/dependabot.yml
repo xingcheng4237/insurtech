@@ -1,5 +1,24 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "01:00"
+      timezone: "Asia/Singapore"
+    open-pull-requests-limit: 3
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "automated"
+      - "github-actions"
+    assignees:
+      - "xingcheng4237"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
+
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
