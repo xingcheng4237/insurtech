@@ -50,15 +50,17 @@ describe("public platform and SPA routes", () => {
     expect(new Date(response.body.timestamp).getTime()).not.toBeNaN();
   });
 
-  it("serves static assets and falls unknown client routes back to the SPA", async () => {
+  it("serves static assets and falls root and nested client routes back to the SPA", async () => {
     await request(spaApp)
       .get("/asset.txt")
       .expect(200)
       .expect("static asset served by integration test");
 
-    const response = await request(spaApp).get("/latest").expect(200);
-    expect(response.headers["content-type"]).toContain("text/html");
-    expect(response.text).toContain("Insurtech SPA");
+    for (const route of ["/", "/latest", "/reports/2026-09-05"]) {
+      const response = await request(spaApp).get(route).expect(200);
+      expect(response.headers["content-type"]).toContain("text/html");
+      expect(response.text).toContain("Insurtech SPA");
+    }
   });
 
   it("does not expose the removed legacy subscriber administration route", async () => {
