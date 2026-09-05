@@ -5,7 +5,8 @@ Insurance Technology platform — policy management, claims processing, customer
 ## Tech Stack
 - **Backend**: Java 17 + Spring Boot 3.x + PostgreSQL + Redis
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + Vite
-- **Hosting**: Railway (backend API) + Cloudflare Pages (frontend at www.chengxing.org)
+- **Hosting**: Railway (backend API + frontend web)
+- **Domain**: www.chengxing.org (via Cloudflare DNS)
 - **Tracking**: Jira (build tracker) + Confluence (knowledge base)
 - **Specs**: OpenSpec (spec-driven development)
 - **Research**: Perplexity AI (industry research)
@@ -30,15 +31,13 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete instructions.
 # 1. Authenticate Railway (opens browser)
 railway login
 
-# 2. Create project and deploy backend
+# 2. Deploy backend
 cd backend
-railway init --name insurtech
-railway add --database postgres
-railway add --database redis
 railway up --service=insurtech-api
 
-# 3. Deploy frontend to Cloudflare Pages
-# (via GitHub Actions or Cloudflare Dashboard)
+# 3. Deploy frontend
+cd ../frontend
+railway up --service=insurtech-web
 ```
 
 ## Project Structure
