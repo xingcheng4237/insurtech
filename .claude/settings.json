@@ -1,0 +1,15 @@
+{
+  "env": {
+    "CLAUDE_PROJECT_DIR": "/Users/xingcheng/Documents/Kimi/Workspaces/Insurtech"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npx @claude-flow*)",
+      "Bash(npx claude-flow*)",
+      "Bash(node .claude/*)",
+      "Bash(rtk *)",
+      "mcp__claude-flow__:*"
+    ],
+    "defaultMode": "auto"
+  }
+}
