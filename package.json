@@ -12,6 +12,7 @@
     "format:check": "prettier --check .",
     "lint": "pnpm format:check",
     "test": "vitest run",
+    "test:dependency-upgrade": "pnpm lint && pnpm check && pnpm test && pnpm build && pnpm audit --prod --audit-level=moderate",
     "db:push": "drizzle-kit push --config=drizzle.config.js"
   },
   "dependencies": {
