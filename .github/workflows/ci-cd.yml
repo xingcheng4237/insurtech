@@ -47,6 +47,7 @@ jobs:
         run: railway up --service=insurtech-api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
   deploy-frontend:
     needs: [backend-test, frontend-test]
@@ -61,3 +62,4 @@ jobs:
         run: railway up --service=insurtech-web
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
