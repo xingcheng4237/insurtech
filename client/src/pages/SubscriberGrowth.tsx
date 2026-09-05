@@ -5,7 +5,13 @@
  */
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Newspaper, TrendingUp, Users, CheckCircle, CalendarDays } from "lucide-react";
+import {
+  Newspaper,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  CalendarDays,
+} from "lucide-react";
 import { Link } from "wouter";
 import { APP_TITLE } from "@/const";
 import {
@@ -23,9 +29,13 @@ function CustomTooltip({ active, payload, label }: any) {
   return (
     <div className="rounded-lg border bg-white px-3 py-2 shadow-md text-sm">
       <p className="font-semibold text-foreground mb-1">Week of {label}</p>
-      <p className="text-primary">Total: <span className="font-bold">{payload[0]?.value}</span></p>
+      <p className="text-primary">
+        Total: <span className="font-bold">{payload[0]?.value}</span>
+      </p>
       {payload[1] && (
-        <p className="text-emerald-600">New this week: <span className="font-bold">{payload[1]?.value}</span></p>
+        <p className="text-emerald-600">
+          New this week: <span className="font-bold">{payload[1]?.value}</span>
+        </p>
       )}
     </div>
   );
@@ -34,11 +44,12 @@ function CustomTooltip({ active, payload, label }: any) {
 export default function SubscriberGrowth() {
   const { data, isLoading, error } = trpc.growth.stats.useQuery();
 
-  const chartData = data?.weeklyGrowth.map(w => ({
-    week: w.week,
-    total: w.total,
-    new: w.newSubs,
-  })) ?? [];
+  const chartData =
+    data?.weeklyGrowth.map(w => ({
+      week: w.week,
+      total: w.total,
+      new: w.newSubs,
+    })) ?? [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -69,16 +80,17 @@ export default function SubscriberGrowth() {
       {/* Main content */}
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-
           {/* Page title */}
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-6 w-6 text-primary" />
-              <h2 className="text-3xl font-bold tracking-tight">Newsletter Growth</h2>
+              <h2 className="text-3xl font-bold tracking-tight">
+                Newsletter Growth
+              </h2>
             </div>
             <p className="text-muted-foreground max-w-xl">
-              Weekly insurtech intelligence for insurance leaders across Asia-Pacific.
-              Tracking subscriber growth since launch.
+              Weekly insurtech intelligence for insurance leaders across
+              Asia-Pacific. Tracking subscriber growth since launch.
             </p>
           </div>
 
@@ -131,7 +143,9 @@ export default function SubscriberGrowth() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-3xl font-bold">{data.verified}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Email confirmed</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Email confirmed
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -143,8 +157,12 @@ export default function SubscriberGrowth() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold">+{data.latestWeekNewSubs}</p>
-                    <p className="text-xs text-muted-foreground mt-1">New subscribers</p>
+                    <p className="text-3xl font-bold">
+                      +{data.latestWeekNewSubs}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      New subscribers
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -156,8 +174,12 @@ export default function SubscriberGrowth() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold">{data.weeklyGrowth.length}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Since launch</p>
+                    <p className="text-3xl font-bold">
+                      {data.weeklyGrowth.length}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Since launch
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -166,26 +188,54 @@ export default function SubscriberGrowth() {
               {chartData.length > 0 ? (
                 <Card className="mb-8">
                   <CardHeader>
-                    <CardTitle className="text-base">Cumulative Subscriber Growth</CardTitle>
+                    <CardTitle className="text-base">
+                      Cumulative Subscriber Growth
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={260}>
-                      <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                      <AreaChart
+                        data={chartData}
+                        margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+                      >
                         <defs>
-                          <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          <linearGradient
+                            id="growthGrad"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="hsl(var(--primary))"
+                              stopOpacity={0.15}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="hsl(var(--primary))"
+                              stopOpacity={0}
+                            />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(var(--border))"
+                        />
                         <XAxis
                           dataKey="week"
-                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                          tick={{
+                            fontSize: 11,
+                            fill: "hsl(var(--muted-foreground))",
+                          }}
                           tickLine={false}
                           axisLine={false}
                         />
                         <YAxis
-                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                          tick={{
+                            fontSize: 11,
+                            fill: "hsl(var(--muted-foreground))",
+                          }}
                           tickLine={false}
                           axisLine={false}
                           allowDecimals={false}
@@ -208,7 +258,9 @@ export default function SubscriberGrowth() {
                 <Card className="mb-8 border-primary/20 bg-primary/5">
                   <CardContent className="pt-8 pb-8 text-center">
                     <TrendingUp className="h-10 w-10 text-primary mx-auto mb-3" />
-                    <p className="font-semibold text-foreground">Growth tracking starts here</p>
+                    <p className="font-semibold text-foreground">
+                      Growth tracking starts here
+                    </p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Subscribe to start tracking weekly growth.
                     </p>
@@ -220,7 +272,9 @@ export default function SubscriberGrowth() {
               {data.milestones.length > 0 && (
                 <Card className="mb-8">
                   <CardHeader>
-                    <CardTitle className="text-base">Milestones Reached 🎉</CardTitle>
+                    <CardTitle className="text-base">
+                      Milestones Reached 🎉
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
@@ -243,9 +297,12 @@ export default function SubscriberGrowth() {
                 <CardContent className="pt-6 pb-6">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                      <p className="font-semibold text-lg">Get the weekly digest</p>
+                      <p className="font-semibold text-lg">
+                        Get the weekly digest
+                      </p>
                       <p className="text-sm opacity-80 mt-1">
-                        Every Friday — top insurtech news curated for APAC insurance leaders.
+                        Every Friday — top insurtech news curated for APAC
+                        insurance leaders.
                       </p>
                     </div>
                     <a
@@ -268,7 +325,8 @@ export default function SubscriberGrowth() {
       <footer className="border-t mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
           <p>
-            Insurtech News Tracker &bull; Powered by AI &bull; {new Date().getFullYear()} &bull;{" "}
+            Insurtech News Tracker &bull; Powered by AI &bull;{" "}
+            {new Date().getFullYear()} &bull;{" "}
             <a
               href="https://chengxing.org"
               className="hover:text-foreground transition-colors"

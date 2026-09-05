@@ -18,11 +18,11 @@ export function generateDailyNewsEmail(
   aiAnalysis: string,
   categorizedArticles: Record<string, NewsArticle[]>
 ): string {
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   // Calculate week range (Mon-Fri)
@@ -30,7 +30,7 @@ export function generateDailyNewsEmail(
   const dayOfWeek = now.getDay(); // 0=Sun, 5=Fri
   const monday = new Date(now);
   monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  const weekRange = `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  const weekRange = `${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 
   return `
 <!DOCTYPE html>
@@ -189,38 +189,57 @@ export function generateDailyNewsEmail(
       </div>
     </div>
 
-    ${aiAnalysis ? `
+    ${
+      aiAnalysis
+        ? `
     <div class="summary">
       <h2>🤖 AI Analysis & Insights</h2>
-      ${aiAnalysis.split('\n').map(line => {
-        if (line.startsWith('#')) {
-          const level = line.match(/^#+/)?.[0].length || 1;
-          const text = line.replace(/^#+\s*/, '');
-          return `<h${level + 2}>${text}</h${level + 2}>`;
-        }
-        return `<p>${line}</p>`;
-      }).join('')}
+      ${aiAnalysis
+        .split("\n")
+        .map(line => {
+          if (line.startsWith("#")) {
+            const level = line.match(/^#+/)?.[0].length || 1;
+            const text = line.replace(/^#+\s*/, "");
+            return `<h${level + 2}>${text}</h${level + 2}>`;
+          }
+          return `<p>${line}</p>`;
+        })
+        .join("")}
     </div>
-    ` : ''}
+    `
+        : ""
+    }
 
-    ${Object.entries(categorizedArticles).map(([category, categoryArticles]) => `
+    ${Object.entries(categorizedArticles)
+      .map(
+        ([category, categoryArticles]) => `
       <div class="category">
         <h3>${category} <span class="badge">${categoryArticles.length}</span></h3>
-        ${categoryArticles.map(article => `
+        ${categoryArticles
+          .map(
+            article => `
           <div class="article">
             <div class="article-title">
               <a href="${article.url}" target="_blank">${article.title}</a>
             </div>
             <div class="article-meta">
-              📍 ${article.source} ${article.region ? `• ${article.region}` : ''} • ${new Date(article.publishedDate).toLocaleDateString()}
+              📍 ${article.source} ${article.region ? `• ${article.region}` : ""} • ${new Date(article.publishedDate).toLocaleDateString()}
             </div>
-            ${article.snippet ? `
-              <div class="article-snippet">${article.snippet.substring(0, 200)}${article.snippet.length > 200 ? '...' : ''}</div>
-            ` : ''}
+            ${
+              article.snippet
+                ? `
+              <div class="article-snippet">${article.snippet.substring(0, 200)}${article.snippet.length > 200 ? "..." : ""}</div>
+            `
+                : ""
+            }
           </div>
-        `).join('')}
+        `
+          )
+          .join("")}
       </div>
-    `).join('')}
+    `
+      )
+      .join("")}
 
     <div class="footer">
       <p><strong>Insurtech News Tracker</strong> - Weekly Intelligence for Insurance Leaders</p>

@@ -1,203 +1,90 @@
-# Insurtech News Tracker - Railway Deployment Guide
+# Insurtech News Tracker — Railway Deployment Guide
 
-## 📋 Overview
+The live application is available at **https://insurtechnewstracker.chengxing.org**. This guide documents the current private-access, Google SSO, and externally scheduled weekly-digest deployment model.
 
-Complete guide for deploying the Insurtech News Tracker to Railway with all features enabled.
+> **Security model.** The application is private by default. Google SSO is enforced for reports and operational data. Collection, queue status, schedule status, subscription statistics, and bulk subscriber actions are available only to administrators. The managed Railway cron is the only process that may trigger automatic collection.
 
-**🌐 Live Public URL:** https://insurtechnewstracker.chengxing.org
+## Deployment Pipeline
 
----
+Railway uses `nixpacks.toml` as the canonical build definition. Every deployment runs a frozen dependency install, TypeScript check, regression tests, and production build before starting `node dist/index.js`.
 
-## 🚀 Quick Start
+| Stage    | Command                          | Purpose                                           |
+| -------- | -------------------------------- | ------------------------------------------------- |
+| Install  | `pnpm install --frozen-lockfile` | Installs exactly the committed lockfile versions. |
+| Validate | `pnpm check`                     | Rejects TypeScript errors.                        |
+| Test     | `pnpm test`                      | Runs server-side authorization regression tests.  |
+| Build    | `pnpm build`                     | Produces client and server production assets.     |
 
-### 1. Deploy to Railway
+## Required Railway Variables
 
-1. **Connect GitHub Repository**
-   - Go to [Railway](https://railway.app)
-   - Create new project
-   - Connect to `xingcheng4237/insurtech-tracker-web`
+Set the following values in the **Railway service Variables** panel. Never put real secrets in source code, documentation, Git commits, browser URLs, or Slack messages.
 
-2. **Add MySQL Database**
-   - Click "+ New" → "Database" → "MySQL"
-   - Railway will automatically set `DATABASE_URL`
+| Variable                                              |    Required | Purpose                                                                                    |
+| ----------------------------------------------------- | ----------: | ------------------------------------------------------------------------------------------ |
+| `NODE_ENV=production`                                 |         Yes | Enables production behavior and HTTP security headers.                                     |
+| `DATABASE_URL`                                        |         Yes | Connection string for the managed database.                                                |
+| `BASE_URL=https://insurtechnewstracker.chengxing.org` |         Yes | Canonical public origin used in OAuth and notification links.                              |
+| `OPENAI_API_KEY`                                      |         Yes | AI analysis during collection.                                                             |
+| `RESEND_API_KEY`                                      |         Yes | Verified subscriber email delivery.                                                        |
+| `GOOGLE_CLIENT_ID`                                    |         Yes | Google OAuth client ID.                                                                    |
+| `GOOGLE_CLIENT_SECRET`                                |         Yes | Google OAuth client secret.                                                                |
+| `ALLOWED_EMAILS=xingcheng4237@gmail.com`              |         Yes | Comma-separated SSO allowlist.                                                             |
+| `CRON_SECRET`                                         |         Yes | Long, random secret for the Railway cron Authorization header.                             |
+| `SCHEDULE_ENABLED=true`                               |         Yes | Indicates that the external schedule is active in the administrator status view.           |
+| `SCHEDULE_TIME=09:00`                                 | Recommended | Displayed collection time in the configured timezone.                                      |
+| `SCHEDULE_TIMEZONE=Asia/Singapore`                    | Recommended | Display timezone.                                                                          |
+| `SCHEDULE_DAY_OF_WEEK=5`                              | Recommended | Friday display value; `daily` is also supported.                                           |
+| `SCHEDULE_MODE=production`                            | Recommended | `production` sends to verified subscribers; `test` sends only to the fixed test recipient. |
 
-3. **Configure Environment Variables** (see below)
-
-4. **Deploy** - Railway automatically deploys on push to `main`
-
----
-
-## 🔑 Required Environment Variables
-
-### **Core Configuration**
-
-```bash
-DATABASE_URL=(auto-configured by Railway MySQL)
-NODE_ENV=production
-PORT=3000
-```
-
-### **OpenAI API** (Required for AI Analysis)
-
-```bash
-OPENAI_API_KEY=sk-proj-YOUR_KEY_HERE
-```
-
-Get your key: https://platform.openai.com/api-keys
-
-### **Email Delivery** (Required - Using Resend)
+Generate `CRON_SECRET` with a cryptographically secure generator, for example:
 
 ```bash
-RESEND_API_KEY=re_YOUR_KEY_HERE
-EMAIL_TO=xingcheng4237@gmail.com
+openssl rand -base64 48
 ```
 
-Get Resend API key:
-1. Sign up at https://resend.com/signup
-2. Go to https://resend.com/api-keys
-3. Create new API key
+## Google OAuth Configuration
 
-### **Daily Schedule** (Optional)
+In the Google Cloud OAuth client, add the following **Authorized redirect URI** exactly:
 
-```bash
-SCHEDULE_ENABLED=true
-SCHEDULE_TIME=09:00
-SCHEDULE_TIMEZONE=Asia/Singapore
-SCHEDULE_MODE=production
+```text
+https://insurtechnewstracker.chengxing.org/api/auth/google/callback
 ```
 
-**Modes:**
-- `production` = sends to all verified subscribers
-- `test` = sends only to xingcheng4237@gmail.com
+The application generates a short-lived, one-time OAuth state and PKCE verifier for every login. A callback is rejected unless it returns the matching state, includes the verifier cookie, and has a Google-verified email address in `ALLOWED_EMAILS`.
 
-### **Authentication** (Optional)
+## Weekly Railway Cron
 
-```bash
-JWT_SECRET=your-random-secret-key
-```
+Create one Railway **Cron Job** named `Weekly Insurtech Digest`. The configured business preference is **Friday, 09:00 Singapore time**, which is **01:00 UTC**.
 
----
+| Setting  | Value                                                                                                                                                    |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Schedule | `0 1 * * 5`                                                                                                                                              |
+| Command  | `curl --fail --silent --show-error -X POST https://insurtechnewstracker.chengxing.org/api/cron/daily-collection -H "Authorization: Bearer $CRON_SECRET"` |
+| Behavior | The endpoint validates `CRON_SECRET`, queues a production collection, and returns `202 Accepted` with a job ID.                                          |
 
-## ✅ Complete Environment Variable Template
+> Keep the legacy in-process scheduler disabled. It was removed from the application so that the managed Railway cron is the only automatic trigger and duplicate digests are avoided.
 
-Copy this to Railway Variables tab:
+## Post-Deployment Verification
 
-```bash
-# Core
-DATABASE_URL=(auto-configured)
-NODE_ENV=production
+After Railway reports a successful deployment, verify the following without invoking state-changing administrative routes using a browser GET request.
 
-# AI Analysis
-OPENAI_API_KEY=sk-proj-YOUR_OPENAI_KEY_HERE
+| Check                                               | Expected result                                                                          |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `GET /health`                                       | `200` and `{ "status": "ok" }`.                                                          |
+| Open `/login`                                       | Google sign-in screen renders.                                                           |
+| Unauthenticated `GET /api/trpc/news.latest`         | `401` or `403`; no report contents are returned.                                         |
+| Unauthenticated `GET /admin/list-subscribers`       | `404`; the legacy route no longer exists.                                                |
+| Unauthenticated `GET /admin/verify-all-subscribers` | `404`; bulk verification is available only through authenticated administrator controls. |
+| `GET /api/cron/health`                              | `200` and `cronSecret: "configured"`; no secret value is returned.                       |
 
-# Email Delivery
-RESEND_API_KEY=re_YOUR_KEY_HERE
-EMAIL_TO=xingcheng4237@gmail.com
+To validate a scheduled collection safely, use the administrator-only **Test Collect** function while signed in with the approved admin account. Do not use a browser GET request for collection or bulk subscriber actions.
 
-# Daily Schedule
-SCHEDULE_ENABLED=true
-SCHEDULE_TIME=09:00
-SCHEDULE_TIMEZONE=Asia/Singapore
-SCHEDULE_MODE=production
+## Routine Operations
 
-# Authentication
-JWT_SECRET=your-random-secret-key-here
-```
+Review Railway logs after each scheduled run. The cron request should log an enqueued job ID, followed by collection progress and final delivery status. If the cron health endpoint reports `cronSecret: "missing"`, add or restore the service’s `CRON_SECRET` before enabling the Cron Job.
 
----
+When adding an authorized person, update `ALLOWED_EMAILS` with a comma-separated address list, redeploy, then assign the appropriate database role. Only users with `role = 'admin'` can start collection, access queue/schedule operational data, or bulk-verify subscriptions.
 
-## 🧪 Testing Checklist
+## Incident Response
 
-### **1. Basic Functionality**
-- [ ] Website loads
-- [ ] Health check: `/health` returns `{"status":"ok"}`
-- [ ] Navigation works
-
-### **2. Test Email Delivery**
-- [ ] Click "🧪 Test Collect" button
-- [ ] Wait 3-5 minutes
-- [ ] Check email at xingcheng4237@gmail.com
-- [ ] Verify email contains articles and AI analysis
-
-### **3. Schedule Status**
-- [ ] Go to `/schedule` page
-- [ ] Verify status matches `SCHEDULE_ENABLED`
-- [ ] Check next run time is correct
-
-### **4. Production Mode**
-- [ ] Add subscriber via website form
-- [ ] Click "Collect News" (not Test)
-- [ ] Verify email sent to all subscribers
-
----
-
-## 📊 Monitoring
-
-### **Railway Logs - Expected Output**
-
-**Startup:**
-```
-✅ Database migrations completed successfully
-Server running on http://0.0.0.0:8080/
-📅 Scheduler: ENABLED
-   Time: 09:00 (Asia/Singapore)
-✅ Scheduler: Started successfully
-⏰ Next scheduled run: Monday, February 19, 2026, 09:00 AM SGT
-```
-
-**News Collection:**
-```
-🚀 Starting news collection...
-📡 Fetching Google News (30 queries)...
-✅ Google News: 45 articles
-📡 Fetching RSS feeds (7 feeds)...
-✅ RSS Feeds: 38 articles
-✅ After deduplication: 67 articles
-✅ After AI filtering: 12 articles
-```
-
-**Email Delivery:**
-```
-✅ Email service configured successfully (Resend API)
-[NewsCollection] Sending email report...
-✅ Email sent successfully via Resend
-Email ID: abc123...
-Recipient: xingcheng4237@gmail.com
-```
-
----
-
-## 🐛 Troubleshooting
-
-### **Email Not Received**
-1. Check Railway logs for errors
-2. Verify `RESEND_API_KEY` is correct
-3. Check spam folder
-4. Check Resend dashboard for delivery status
-
-### **AI Analysis Failing**
-1. Verify `OPENAI_API_KEY` is correct
-2. Test key with curl:
-   ```bash
-   curl https://api.openai.com/v1/chat/completions \
-     -H "Authorization: Bearer YOUR_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"test"}]}'
-   ```
-
-### **Schedule Not Running**
-1. Verify `SCHEDULE_ENABLED=true`
-2. Check logs for scheduler initialization
-3. Check `/schedule` page for next run time
-
----
-
-## 🎉 Success Criteria
-
-✅ Website loads  
-✅ Test collection works  
-✅ Email arrives with AI analysis  
-✅ Schedule page shows correct status  
-✅ Daily automation triggers (if enabled)  
-
-**Your deployment is complete! 🚀**
+If a credential is ever committed, **revoke or rotate it immediately** in the provider dashboard, update Railway variables, and redeploy. Sanitizing a current file does not remove a secret from Git history. Assess whether history rewrite is necessary when the repository was shared while the credential was valid.

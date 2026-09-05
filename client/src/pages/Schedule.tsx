@@ -1,16 +1,35 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
-import { Newspaper, Home, Clock, Calendar, Globe, Settings, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Newspaper,
+  Home,
+  Clock,
+  Calendar,
+  Globe,
+  Settings,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { Link } from "wouter";
 import { APP_TITLE } from "@/const";
 import { useEffect, useState } from "react";
 
 export default function Schedule() {
-  const { data: status, isLoading, refetch } = trpc.news.scheduleStatus.useQuery();
-  const [timeUntilNext, setTimeUntilNext] = useState<string>('');
+  const {
+    data: status,
+    isLoading,
+    refetch,
+  } = trpc.news.scheduleStatus.useQuery();
+  const [timeUntilNext, setTimeUntilNext] = useState<string>("");
 
   // Calculate time until next run
   useEffect(() => {
@@ -19,33 +38,53 @@ export default function Schedule() {
     const updateCountdown = () => {
       // Try to parse the formatted date string
       // Format: "Friday, February 20, 2026 at 05:00 PM GMT+8"
-      const dateMatch = status.nextRun!.match(/(\w+), (\w+) (\d+), (\d+) at (\d+):(\d+) (AM|PM)/);
+      const dateMatch = status.nextRun!.match(
+        /(\w+), (\w+) (\d+), (\d+) at (\d+):(\d+) (AM|PM)/
+      );
       if (!dateMatch) {
-        setTimeUntilNext('Unable to calculate');
+        setTimeUntilNext("Unable to calculate");
         return;
       }
-      
+
       const [_, weekday, month, day, year, hour12, minute, ampm] = dateMatch;
       let hour = parseInt(hour12);
-      if (ampm === 'PM' && hour !== 12) hour += 12;
-      if (ampm === 'AM' && hour === 12) hour = 0;
-      
-      const monthMap: {[key: string]: number} = {
-        'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
-        'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+      if (ampm === "PM" && hour !== 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
+
+      const monthMap: { [key: string]: number } = {
+        January: 0,
+        February: 1,
+        March: 2,
+        April: 3,
+        May: 4,
+        June: 5,
+        July: 6,
+        August: 7,
+        September: 8,
+        October: 9,
+        November: 10,
+        December: 11,
       };
-      
-      const next = new Date(parseInt(year), monthMap[month], parseInt(day), hour, parseInt(minute));
+
+      const next = new Date(
+        parseInt(year),
+        monthMap[month],
+        parseInt(day),
+        hour,
+        parseInt(minute)
+      );
       const now = new Date();
       const diff = next.getTime() - now.getTime();
 
       if (diff <= 0) {
-        setTimeUntilNext('Running now or past due');
+        setTimeUntilNext("Running now or past due");
         return;
       }
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const hours = Math.floor(
+        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
@@ -55,7 +94,7 @@ export default function Schedule() {
       if (minutes > 0) parts.push(`${minutes}m`);
       if (seconds > 0 && days === 0) parts.push(`${seconds}s`);
 
-      setTimeUntilNext(parts.join(' ') || 'Less than a second');
+      setTimeUntilNext(parts.join(" ") || "Less than a second");
     };
 
     updateCountdown();
@@ -126,14 +165,17 @@ export default function Schedule() {
                         Schedule Status
                       </CardTitle>
                       <CardDescription className="mt-1">
-                        {status.enabled 
-                          ? 'Automated collection is active' 
-                          : 'Automated collection is disabled'}
+                        {status.enabled
+                          ? "Automated collection is active"
+                          : "Automated collection is disabled"}
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge variant={status.enabled ? "default" : "secondary"} className="text-base px-4 py-1">
-                    {status.enabled ? 'ENABLED' : 'DISABLED'}
+                  <Badge
+                    variant={status.enabled ? "default" : "secondary"}
+                    className="text-base px-4 py-1"
+                  >
+                    {status.enabled ? "ENABLED" : "DISABLED"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -171,12 +213,12 @@ export default function Schedule() {
                     </div>
                     {status.lastRun ? (
                       <div className="text-lg font-semibold">
-                        {new Date(status.lastRun).toLocaleString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
+                        {new Date(status.lastRun).toLocaleString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </div>
                     ) : (
@@ -207,8 +249,12 @@ export default function Schedule() {
                     <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
                       <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
-                        <div className="text-sm font-medium text-muted-foreground">Timezone</div>
-                        <div className="text-lg font-semibold mt-1">{status.timezone}</div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Timezone
+                        </div>
+                        <div className="text-lg font-semibold mt-1">
+                          {status.timezone}
+                        </div>
                       </div>
                     </div>
 
@@ -216,15 +262,17 @@ export default function Schedule() {
                     <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
                       <Settings className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
-                        <div className="text-sm font-medium text-muted-foreground">Mode</div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Mode
+                        </div>
                         <div className="text-lg font-semibold mt-1 capitalize">
                           {status.mode}
-                          {status.mode === 'test' && (
+                          {status.mode === "test" && (
                             <span className="text-sm font-normal text-muted-foreground ml-2">
                               (xingcheng4237@gmail.com only)
                             </span>
                           )}
-                          {status.mode === 'production' && (
+                          {status.mode === "production" && (
                             <span className="text-sm font-normal text-muted-foreground ml-2">
                               (all subscribers)
                             </span>
@@ -239,12 +287,16 @@ export default function Schedule() {
                     <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
                       <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-muted-foreground">Cron Expression</div>
-                        <div className="text-lg font-mono font-semibold mt-1">{status.cronExpression}</div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Cron Expression
+                        </div>
+                        <div className="text-lg font-mono font-semibold mt-1">
+                          {status.cronExpression}
+                        </div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {status.cronExpression?.split(' ')[4] === '*'
-                            ? 'Runs every day at the configured time'
-                            : `Runs every ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][parseInt(status.cronExpression?.split(' ')[4] ?? '0')] ?? 'week'} at the configured time`}
+                          {status.cronExpression?.split(" ")[4] === "*"
+                            ? "Runs every day at the configured time"
+                            : `Runs every ${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][parseInt(status.cronExpression?.split(" ")[4] ?? "0")] ?? "week"} at the configured time`}
                         </div>
                       </div>
                     </div>
@@ -258,7 +310,8 @@ export default function Schedule() {
               <CardHeader>
                 <CardTitle>How to Configure</CardTitle>
                 <CardDescription>
-                  Schedule settings are managed via Railway environment variables
+                  Schedule settings are managed via Railway environment
+                  variables
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -268,8 +321,13 @@ export default function Schedule() {
                       SCHEDULE_ENABLED
                     </code>
                     <span className="text-muted-foreground">
-                      Set to <code className="bg-gray-100 px-1 rounded">true</code> to enable, 
-                      <code className="bg-gray-100 px-1 rounded ml-1">false</code> to disable
+                      Set to{" "}
+                      <code className="bg-gray-100 px-1 rounded">true</code> to
+                      enable,
+                      <code className="bg-gray-100 px-1 rounded ml-1">
+                        false
+                      </code>{" "}
+                      to disable
                     </span>
                   </div>
                   <div className="flex gap-3">
@@ -277,7 +335,8 @@ export default function Schedule() {
                       SCHEDULE_TIME
                     </code>
                     <span className="text-muted-foreground">
-                      Time in HH:MM format (24-hour), e.g., <code className="bg-gray-100 px-1 rounded">09:00</code>
+                      Time in HH:MM format (24-hour), e.g.,{" "}
+                      <code className="bg-gray-100 px-1 rounded">09:00</code>
                     </span>
                   </div>
                   <div className="flex gap-3">
@@ -285,7 +344,10 @@ export default function Schedule() {
                       SCHEDULE_TIMEZONE
                     </code>
                     <span className="text-muted-foreground">
-                      IANA timezone, e.g., <code className="bg-gray-100 px-1 rounded">Asia/Singapore</code>
+                      IANA timezone, e.g.,{" "}
+                      <code className="bg-gray-100 px-1 rounded">
+                        Asia/Singapore
+                      </code>
                     </span>
                   </div>
                   <div className="flex gap-3">
@@ -293,9 +355,14 @@ export default function Schedule() {
                       SCHEDULE_DAY_OF_WEEK
                     </code>
                     <span className="text-muted-foreground">
-                      Day to run: <code className="bg-gray-100 px-1 rounded">daily</code> for every day, or a number
-                      <code className="bg-gray-100 px-1 rounded ml-1">0</code>–<code className="bg-gray-100 px-1 rounded">6</code> (0=Sun, 5=Fri, 6=Sat).
-                      Currently set to <code className="bg-gray-100 px-1 rounded">5</code> (Friday).
+                      Day to run:{" "}
+                      <code className="bg-gray-100 px-1 rounded">daily</code>{" "}
+                      for every day, or a number
+                      <code className="bg-gray-100 px-1 rounded ml-1">0</code>–
+                      <code className="bg-gray-100 px-1 rounded">6</code>{" "}
+                      (0=Sun, 5=Fri, 6=Sat). Currently set to{" "}
+                      <code className="bg-gray-100 px-1 rounded">5</code>{" "}
+                      (Friday).
                     </span>
                   </div>
                   <div className="flex gap-3">
@@ -303,14 +370,21 @@ export default function Schedule() {
                       SCHEDULE_MODE
                     </code>
                     <span className="text-muted-foreground">
-                      <code className="bg-gray-100 px-1 rounded">production</code> (all subscribers) or 
-                      <code className="bg-gray-100 px-1 rounded ml-1">test</code> (test email only)
+                      <code className="bg-gray-100 px-1 rounded">
+                        production
+                      </code>{" "}
+                      (all subscribers) or
+                      <code className="bg-gray-100 px-1 rounded ml-1">
+                        test
+                      </code>{" "}
+                      (test email only)
                     </span>
                   </div>
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-900">
-                    <strong>Note:</strong> Changes to environment variables require a Railway redeploy to take effect.
+                    <strong>Note:</strong> Changes to environment variables
+                    require a Railway redeploy to take effect.
                   </p>
                 </div>
               </CardContent>
@@ -320,7 +394,9 @@ export default function Schedule() {
           <Card>
             <CardContent className="py-12 text-center">
               <XCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Unable to Load Schedule Status</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Unable to Load Schedule Status
+              </h3>
               <p className="text-muted-foreground mb-4">
                 Failed to fetch schedule configuration
               </p>

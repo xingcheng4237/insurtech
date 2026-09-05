@@ -24,11 +24,11 @@ interface ReportData {
 
 export function generateHTMLReport(data: ReportData): string {
   const { articles, aiAnalysis, categorizedNews, stats } = data;
-  const reportDate = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const reportDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return `<!DOCTYPE html>
@@ -226,31 +226,33 @@ export function generateHTMLReport(data: ReportData): string {
 function formatAnalysis(analysis: string): string {
   // Convert markdown-style formatting to HTML
   let formatted = analysis
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^# (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/(<li>[\s\S]*<\/li>)/, '<ul>$1</ul>');
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^# (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/(<li>[\s\S]*<\/li>)/, "<ul>$1</ul>");
 
   // Wrap in paragraphs if not already wrapped
-  if (!formatted.startsWith('<')) {
-    formatted = '<p>' + formatted + '</p>';
+  if (!formatted.startsWith("<")) {
+    formatted = "<p>" + formatted + "</p>";
   }
 
   return formatted;
 }
 
-function generateCategorizedNews(categorizedNews: Record<string, NewsItem[]>): string {
-  let html = '';
-  
+function generateCategorizedNews(
+  categorizedNews: Record<string, NewsItem[]>
+): string {
+  let html = "";
+
   for (const [category, items] of Object.entries(categorizedNews)) {
     if (items.length === 0) continue;
-    
+
     html += `<div class="category-header">${category}</div>`;
-    
+
     for (const item of items) {
       html += `
         <div class="news-item">
@@ -260,19 +262,19 @@ function generateCategorizedNews(categorizedNews: Record<string, NewsItem[]>): s
       `;
     }
   }
-  
+
   return html;
 }
 
 function formatDate(dateStr: string): string {
-  if (!dateStr) return 'Unknown date';
-  
+  if (!dateStr) return "Unknown date";
+
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   } catch {
     return dateStr;

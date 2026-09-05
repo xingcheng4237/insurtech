@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express from "express";
+import { rateLimit } from "express-rate-limit";
+import helmet from "helmet";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -33,115 +35,61 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   // Run database migrations on startup
   await runMigrations();
-  
-  // Initialize scheduler for automated news collection
-  const { scheduler } = await import('../scheduler');
-  // Scheduler starts automatically based on SCHEDULE_ENABLED env var
-  
+
   const app = express();
+  app.set("trust proxy", 1);
+
+  if (process.env.NODE_ENV === "production") {
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            baseUri: ["'self'"],
+            connectSrc: ["'self'", "https:"],
+            fontSrc: ["'self'", "https:", "data:"],
+            formAction: ["'self'"],
+            frameAncestors: ["'none'"],
+            imgSrc: ["'self'", "https:", "data:"],
+            objectSrc: ["'none'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+          },
+        },
+        crossOriginEmbedderPolicy: false,
+      })
+    );
+  }
+
+  const authRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    message: { error: "Too many sign-in attempts. Please try again later." },
+  });
+  const subscriptionRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    message: {
+      error: "Too many subscription requests. Please try again later.",
+    },
+  });
+
+  app.use("/api/auth", authRateLimit);
+  app.use("/api/trpc/subscription.subscribe", subscriptionRateLimit);
+
   const server = createServer(app);
   // Health check endpoint for Railway
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
   });
-  
-  // Admin endpoint to verify all unverified subscribers
-  const verifyAllHandler = async (_req: any, res: any) => {
-    try {
-      const { getDb } = await import('../db');
-      const { subscribers } = await import('../../drizzle/schema');
-      const { eq, and } = await import('drizzle-orm');
-      
-      const db = await getDb();
-      if (!db) {
-        return res.status(500).json({ success: false, message: 'Database not available' });
-      }
-      
-      // Get all active but unverified subscribers
-      const unverified = await db.select().from(subscribers)
-        .where(
-          and(
-            eq(subscribers.active, true),
-            eq(subscribers.verified, false)
-          )
-        );
-      
-      if (unverified.length === 0) {
-        return res.json({ 
-          success: true, 
-          message: 'No unverified subscribers found',
-          count: 0 
-        });
-      }
-      
-      // Verify all of them
-      for (const sub of unverified) {
-        await db.update(subscribers)
-          .set({ 
-            verified: true, 
-            verifiedAt: new Date(),
-            verificationToken: null 
-          })
-          .where(eq(subscribers.id, sub.id));
-      }
-      
-      res.json({ 
-        success: true, 
-        message: `Successfully verified ${unverified.length} subscriber(s)`,
-        count: unverified.length,
-        emails: unverified.map(s => s.email)
-      });
-    } catch (error) {
-      console.error('[Admin] Error verifying subscribers:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error verifying subscribers',
-        error: String(error)
-      });
-    }
-  };
-  
-  app.get("/admin/verify-all-subscribers", verifyAllHandler);
-  app.post("/admin/verify-all-subscribers", verifyAllHandler);
-  
-  // Diagnostic endpoint to view all subscribers
-  app.get("/admin/list-subscribers", async (_req, res) => {
-    try {
-      const { getDb } = await import('../db');
-      const { subscribers } = await import('../../drizzle/schema');
-      
-      const db = await getDb();
-      if (!db) {
-        return res.status(500).json({ success: false, message: 'Database not available' });
-      }
-      
-      const allSubscribers = await db.select().from(subscribers);
-      
-      res.json({
-        success: true,
-        total: allSubscribers.length,
-        subscribers: allSubscribers.map(s => ({
-          email: s.email,
-          name: s.name,
-          active: s.active,
-          verified: s.verified,
-          subscribedAt: s.subscribedAt,
-          verifiedAt: s.verifiedAt
-        }))
-      });
-    } catch (error) {
-      console.error('[Admin] Error listing subscribers:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error listing subscribers',
-        error: String(error)
-      });
-    }
-  });
 
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // This application does not receive file uploads; keep public payloads bounded.
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ limit: "1mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Google OAuth routes
@@ -170,7 +118,7 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  const host = '0.0.0.0';
+  const host = "0.0.0.0";
   server.listen(port, host, () => {
     console.log(`Server running on http://${host}:${port}/`);
   });

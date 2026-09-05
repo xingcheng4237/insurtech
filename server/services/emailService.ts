@@ -3,7 +3,7 @@
  * Handles sending emails via Resend API (bypasses SMTP port blocking)
  */
 
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 interface EmailOptions {
   to: string;
@@ -15,8 +15,8 @@ interface EmailOptions {
 class EmailService {
   private resend: Resend | null = null;
   private isConfigured = false;
-  private fromEmail: string = '';
-  private fromName: string = '';
+  private fromEmail: string = "";
+  private fromName: string = "";
 
   constructor() {
     this.initialize();
@@ -24,36 +24,38 @@ class EmailService {
 
   private initialize() {
     const resendApiKey = process.env.RESEND_API_KEY;
-    
+
     if (!resendApiKey) {
-      console.warn('⚠️  Email service not configured. Missing RESEND_API_KEY environment variable.');
-      console.warn('   Get your API key at: https://resend.com/api-keys');
+      console.warn(
+        "⚠️  Email service not configured. Missing RESEND_API_KEY environment variable."
+      );
+      console.warn("   Get your API key at: https://resend.com/api-keys");
       this.isConfigured = false;
       return;
     }
 
     try {
       this.resend = new Resend(resendApiKey);
-      
+
       // Configure sender email
       // Use FROM_EMAIL environment variable for custom domain
       // Default to Resend's testing email if not set
-      this.fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-      this.fromName = process.env.EMAIL_FROM_NAME || 'Insurtech News Tracker';
-      
+      this.fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+      this.fromName = process.env.EMAIL_FROM_NAME || "Insurtech News Tracker";
+
       this.isConfigured = true;
-      console.log('✅ Email service configured successfully (Resend API)');
+      console.log("✅ Email service configured successfully (Resend API)");
       console.log(`   From: ${this.fromName} <${this.fromEmail}>`);
     } catch (error) {
-      console.error('❌ Failed to initialize email service:', error);
+      console.error("❌ Failed to initialize email service:", error);
       this.isConfigured = false;
     }
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!this.isConfigured || !this.resend) {
-      console.error('❌ Cannot send email: Email service not configured');
-      console.error('   Set RESEND_API_KEY environment variable');
+      console.error("❌ Cannot send email: Email service not configured");
+      console.error("   Set RESEND_API_KEY environment variable");
       return false;
     }
 
@@ -63,20 +65,20 @@ class EmailService {
         to: [options.to],
         subject: options.subject,
         html: options.html,
-        text: options.text || '',
+        text: options.text || "",
       });
 
       if (error) {
-        console.error('❌ Resend API error:', error);
+        console.error("❌ Resend API error:", error);
         return false;
       }
 
-      console.log('✅ Email sent successfully via Resend');
-      console.log('   Email ID:', data?.id);
-      console.log('   Recipient:', options.to);
+      console.log("✅ Email sent successfully via Resend");
+      console.log("   Email ID:", data?.id);
+      console.log("   Recipient:", options.to);
       return true;
     } catch (error: any) {
-      console.error('❌ Failed to send email:', error?.message || error);
+      console.error("❌ Failed to send email:", error?.message || error);
       return false;
     }
   }
@@ -99,9 +101,9 @@ class EmailService {
   }
 
   private generatePlainTextReport(articles: any[]): string {
-    let text = 'INSURTECH NEWS DAILY DIGEST\n\n';
+    let text = "INSURTECH NEWS DAILY DIGEST\n\n";
     text += `${articles.length} articles collected\n\n`;
-    
+
     articles.forEach((article, index) => {
       text += `${index + 1}. ${article.title}\n`;
       text += `   Source: ${article.source}\n`;

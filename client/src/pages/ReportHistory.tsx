@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
 import { Newspaper, Home, Calendar, FileText } from "lucide-react";
@@ -11,11 +17,11 @@ export default function ReportHistory() {
 
   const formatDate = (date: Date | string) => {
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', { 
-      weekday: 'long',
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return d.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -62,13 +68,13 @@ export default function ReportHistory() {
 
           {isLoading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <Skeleton key={i} className="h-32 w-full" />
               ))}
             </div>
           ) : reports && reports.length > 0 ? (
             <div className="space-y-4">
-              {reports.map((report) => (
+              {reports.map(report => (
                 <Link key={report.id} href={`/report/${report.id}`}>
                   <Card className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardHeader>
@@ -81,19 +87,26 @@ export default function ReportHistory() {
                           <CardDescription className="mt-2 flex items-center gap-4">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              {new Date(report.createdAt).toLocaleString('en-US', {
-                                timeZone: 'Asia/Singapore',
-                                year: 'numeric',
-                                month: 'numeric',
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: 'numeric',
-                                second: 'numeric',
-                                hour12: true
-                              })} GMT+8
+                              {new Date(report.createdAt).toLocaleString(
+                                "en-US",
+                                {
+                                  timeZone: "Asia/Singapore",
+                                  year: "numeric",
+                                  month: "numeric",
+                                  day: "numeric",
+                                  hour: "numeric",
+                                  minute: "numeric",
+                                  second: "numeric",
+                                  hour12: true,
+                                }
+                              )}{" "}
+                              GMT+8
                             </span>
                             <span>{report.articleCount} articles</span>
-                            <span>{JSON.parse(report.categories || '[]').length} categories</span>
+                            <span>
+                              {JSON.parse(report.categories || "[]").length}{" "}
+                              categories
+                            </span>
                           </CardDescription>
                         </div>
                         <Button variant="ghost" size="sm">

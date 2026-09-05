@@ -1,4 +1,4 @@
-import { getWeeklyPerformanceStats } from './db';
+import { getWeeklyPerformanceStats } from "./db";
 
 interface WeeklyStats {
   totalCollections: number;
@@ -10,10 +10,22 @@ interface WeeklyStats {
   totalArticles: number;
 }
 
-export function generateWeeklyPerformanceHTML(stats: WeeklyStats, startDate: Date, endDate: Date): string {
-  const successRate = ((stats.successfulCollections / stats.totalCollections) * 100).toFixed(1);
-  const formatDate = (date: Date) => date.toLocaleDateString('en-SG', { year: 'numeric', month: 'long', day: 'numeric' });
-  
+export function generateWeeklyPerformanceHTML(
+  stats: WeeklyStats,
+  startDate: Date,
+  endDate: Date
+): string {
+  const successRate = (
+    (stats.successfulCollections / stats.totalCollections) *
+    100
+  ).toFixed(1);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-SG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +131,7 @@ export function generateWeeklyPerformanceHTML(stats: WeeklyStats, startDate: Dat
         <div class="stat-value">${stats.totalCollections}</div>
       </div>
 
-      <div class="stat-card ${stats.successfulCollections === stats.totalCollections ? 'success' : 'warning'}">
+      <div class="stat-card ${stats.successfulCollections === stats.totalCollections ? "success" : "warning"}">
         <div class="stat-label">Success Rate</div>
         <div class="stat-value">${successRate}%</div>
       </div>
@@ -134,7 +146,7 @@ export function generateWeeklyPerformanceHTML(stats: WeeklyStats, startDate: Dat
         <div class="stat-value">${Math.round(stats.avgArticleCount)}</div>
       </div>
 
-      <div class="stat-card ${stats.emailSuccessRate === 100 ? 'success' : 'warning'}">
+      <div class="stat-card ${stats.emailSuccessRate === 100 ? "success" : "warning"}">
         <div class="stat-label">Email Success Rate</div>
         <div class="stat-value">${stats.emailSuccessRate.toFixed(1)}%</div>
       </div>
@@ -151,39 +163,43 @@ export function generateWeeklyPerformanceHTML(stats: WeeklyStats, startDate: Dat
         <strong>Collection Performance:</strong> 
         ${stats.successfulCollections} out of ${stats.totalCollections} collections completed successfully 
         (${successRate}% success rate). 
-        ${stats.failedCollections > 0 ? `⚠️ ${stats.failedCollections} collection(s) failed.` : '✅ All collections successful!'}
+        ${stats.failedCollections > 0 ? `⚠️ ${stats.failedCollections} collection(s) failed.` : "✅ All collections successful!"}
       </p>
       <p>
         <strong>Speed:</strong> 
         Average collection time was ${stats.avgCollectionTime.toFixed(1)} seconds, 
-        ${stats.avgCollectionTime < 30 ? '✅ meeting performance targets.' : '⚠️ slower than target (30s).'}
+        ${stats.avgCollectionTime < 30 ? "✅ meeting performance targets." : "⚠️ slower than target (30s)."}
       </p>
       <p>
         <strong>Content Quality:</strong> 
         Collected an average of ${Math.round(stats.avgArticleCount)} articles per day, 
         totaling ${stats.totalArticles} articles this week.
-        ${stats.avgArticleCount >= 5 && stats.avgArticleCount <= 15 ? '✅ Within optimal range (5-15 articles).' : ''}
+        ${stats.avgArticleCount >= 5 && stats.avgArticleCount <= 15 ? "✅ Within optimal range (5-15 articles)." : ""}
       </p>
       <p>
         <strong>Email Delivery:</strong> 
-        ${stats.emailSuccessRate === 100 ? '✅ All emails delivered successfully!' : `⚠️ ${stats.emailSuccessRate.toFixed(1)}% email delivery rate. Some emails may have failed.`}
+        ${stats.emailSuccessRate === 100 ? "✅ All emails delivered successfully!" : `⚠️ ${stats.emailSuccessRate.toFixed(1)}% email delivery rate. Some emails may have failed.`}
       </p>
     </div>
 
-    ${stats.failedCollections > 0 || stats.emailSuccessRate < 100 ? `
+    ${
+      stats.failedCollections > 0 || stats.emailSuccessRate < 100
+        ? `
     <div class="summary" style="background: #fff3cd; border-left: 4px solid #f39c12;">
       <h2>⚠️ Action Required</h2>
       <p>Some issues were detected this week:</p>
       <ul>
-        ${stats.failedCollections > 0 ? `<li>${stats.failedCollections} collection(s) failed - check logs for details</li>` : ''}
-        ${stats.emailSuccessRate < 100 ? `<li>Email delivery rate is ${stats.emailSuccessRate.toFixed(1)}% - verify SMTP configuration</li>` : ''}
+        ${stats.failedCollections > 0 ? `<li>${stats.failedCollections} collection(s) failed - check logs for details</li>` : ""}
+        ${stats.emailSuccessRate < 100 ? `<li>Email delivery rate is ${stats.emailSuccessRate.toFixed(1)}% - verify SMTP configuration</li>` : ""}
       </ul>
     </div>
-    ` : ''}
+    `
+        : ""
+    }
 
     <div class="footer">
       <p>Insurtech News Tracker - Automated Weekly Performance Review</p>
-      <p>Generated on ${new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })}</p>
+      <p>Generated on ${new Date().toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}</p>
     </div>
   </div>
 </body>
@@ -191,17 +207,20 @@ export function generateWeeklyPerformanceHTML(stats: WeeklyStats, startDate: Dat
   `.trim();
 }
 
-export async function generateWeeklyReport(): Promise<{ html: string; stats: WeeklyStats }> {
+export async function generateWeeklyReport(): Promise<{
+  html: string;
+  stats: WeeklyStats;
+}> {
   // Calculate date range for the past 7 days
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 7);
-  
+
   // Get performance stats
   const stats = await getWeeklyPerformanceStats(startDate, endDate);
-  
+
   // Generate HTML report
   const html = generateWeeklyPerformanceHTML(stats, startDate, endDate);
-  
+
   return { html, stats };
 }

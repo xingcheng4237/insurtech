@@ -10,56 +10,58 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function LatestReport() {
   const { data: report, isLoading, refetch } = trpc.news.latest.useQuery();
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === "admin";
 
   // Production mode: sends to all subscribers (admin only)
   const collectNews = trpc.news.collect.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       if (data.success) {
-        toast.success(data.message || 'News collection started');
-        toast.info('This may take 5-10 minutes. Refresh the page to see the new report.');
+        toast.success(data.message || "News collection started");
+        toast.info(
+          "This may take 5-10 minutes. Refresh the page to see the new report."
+        );
         setTimeout(() => refetch(), 30000);
       } else {
-        toast.error(data.message || 'Failed to start collection');
+        toast.error(data.message || "Failed to start collection");
       }
     },
-    onError: (err) => {
-      if (err.data?.code === 'FORBIDDEN') {
-        toast.error('Admin access required to trigger news collection.');
+    onError: err => {
+      if (err.data?.code === "FORBIDDEN") {
+        toast.error("Admin access required to trigger news collection.");
       } else {
-        toast.error('Failed to start news collection');
+        toast.error("Failed to start news collection");
       }
     },
   });
 
   // Test mode: sends only to xingcheng4237@gmail.com (admin only)
   const testCollectNews = trpc.news.testCollect.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       if (data.success) {
-        toast.success('🧪 ' + (data.message || 'Test collection started'));
+        toast.success("🧪 " + (data.message || "Test collection started"));
         toast.info(`Email will be sent to: ${data.testEmail}`);
-        toast.info('This may take 5-10 minutes. Check your email!');
+        toast.info("This may take 5-10 minutes. Check your email!");
         setTimeout(() => refetch(), 30000);
       } else {
-        toast.error(data.message || 'Failed to start test collection');
+        toast.error(data.message || "Failed to start test collection");
       }
     },
-    onError: (err) => {
-      if (err.data?.code === 'FORBIDDEN') {
-        toast.error('Admin access required to trigger test collection.');
+    onError: err => {
+      if (err.data?.code === "FORBIDDEN") {
+        toast.error("Admin access required to trigger test collection.");
       } else {
-        toast.error('Failed to start test news collection');
+        toast.error("Failed to start test news collection");
       }
     },
   });
 
   const handleCollect = () => {
-    toast.info('Starting news collection (PRODUCTION MODE)...');
+    toast.info("Starting news collection (PRODUCTION MODE)...");
     collectNews.mutate();
   };
 
   const handleTestCollect = () => {
-    toast.info('🧪 Starting TEST collection...');
+    toast.info("🧪 Starting TEST collection...");
     testCollectNews.mutate();
   };
 
@@ -95,18 +97,26 @@ export default function LatestReport() {
                     variant="outline"
                     className="gap-2"
                     onClick={handleTestCollect}
-                    disabled={testCollectNews.isPending || collectNews.isPending}
+                    disabled={
+                      testCollectNews.isPending || collectNews.isPending
+                    }
                   >
-                    <RefreshCw className={`h-4 w-4 ${testCollectNews.isPending ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`h-4 w-4 ${testCollectNews.isPending ? "animate-spin" : ""}`}
+                    />
                     🧪 Test Collect
                   </Button>
                   <Button
                     variant="default"
                     className="gap-2"
                     onClick={handleCollect}
-                    disabled={collectNews.isPending || testCollectNews.isPending}
+                    disabled={
+                      collectNews.isPending || testCollectNews.isPending
+                    }
                   >
-                    <RefreshCw className={`h-4 w-4 ${collectNews.isPending ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`h-4 w-4 ${collectNews.isPending ? "animate-spin" : ""}`}
+                    />
                     Collect News
                   </Button>
                 </>
@@ -142,7 +152,7 @@ export default function LatestReport() {
             <p className="text-muted-foreground mb-6">
               {isAdmin
                 ? 'Click "Collect News" to generate your first weekly digest.'
-                : 'No reports have been generated yet. Please check back later.'}
+                : "No reports have been generated yet. Please check back later."}
             </p>
             {isAdmin && (
               <div className="flex gap-3 justify-center">
@@ -152,7 +162,9 @@ export default function LatestReport() {
                   variant="outline"
                   className="gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${testCollectNews.isPending ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 ${testCollectNews.isPending ? "animate-spin" : ""}`}
+                  />
                   🧪 Test Collect
                 </Button>
                 <Button
@@ -160,7 +172,9 @@ export default function LatestReport() {
                   disabled={collectNews.isPending || testCollectNews.isPending}
                   className="gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${collectNews.isPending ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 ${collectNews.isPending ? "animate-spin" : ""}`}
+                  />
                   Collect News Now
                 </Button>
               </div>

@@ -1,23 +1,23 @@
 #!/usr/bin/env node
-import { drizzle } from 'drizzle-orm/mysql2';
-import mysql from 'mysql2/promise';
-import * as schema from './drizzle/schema.ts';
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
+import * as schema from "./drizzle/schema.ts";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
-  console.error('ERROR: DATABASE_URL environment variable is not set');
+  console.error("ERROR: DATABASE_URL environment variable is not set");
   process.exit(1);
 }
 
-console.log('🔄 Starting database migration...');
+console.log("🔄 Starting database migration...");
 
 try {
   // Create MySQL connection
   const connection = await mysql.createConnection(DATABASE_URL);
-  const db = drizzle(connection, { schema, mode: 'default' });
+  const db = drizzle(connection, { schema, mode: "default" });
 
-  console.log('✓ Connected to database');
+  console.log("✓ Connected to database");
 
   // Run migrations by executing SQL directly
   await connection.execute(`
@@ -33,7 +33,7 @@ try {
       lastSignedIn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  console.log('✓ Created table: users');
+  console.log("✓ Created table: users");
 
   await connection.execute(`
     CREATE TABLE IF NOT EXISTS articles (
@@ -48,7 +48,7 @@ try {
       collectedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  console.log('✓ Created table: articles');
+  console.log("✓ Created table: articles");
 
   await connection.execute(`
     CREATE TABLE IF NOT EXISTS reports (
@@ -62,7 +62,7 @@ try {
       createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  console.log('✓ Created table: reports');
+  console.log("✓ Created table: reports");
 
   await connection.execute(`
     CREATE TABLE IF NOT EXISTS collection_logs (
@@ -80,7 +80,7 @@ try {
       FOREIGN KEY (reportId) REFERENCES reports(id)
     )
   `);
-  console.log('✓ Created table: collection_logs');
+  console.log("✓ Created table: collection_logs");
 
   await connection.execute(`
     CREATE TABLE IF NOT EXISTS subscribers (
@@ -96,12 +96,12 @@ try {
       active BOOLEAN NOT NULL DEFAULT TRUE
     )
   `);
-  console.log('✓ Created table: subscribers');
+  console.log("✓ Created table: subscribers");
 
   await connection.end();
-  console.log('✅ Database migration completed successfully!');
+  console.log("✅ Database migration completed successfully!");
   process.exit(0);
 } catch (error) {
-  console.error('❌ Migration failed:', error.message);
+  console.error("❌ Migration failed:", error.message);
   process.exit(1);
 }

@@ -2,9 +2,13 @@
  * Send verification email to new subscriber
  * This is a placeholder - actual email sending will be done via the Python script
  */
-export function generateVerificationEmailHTML(email: string, verificationToken: string, baseUrl: string): string {
+export function generateVerificationEmailHTML(
+  email: string,
+  verificationToken: string,
+  baseUrl: string
+): string {
   const verificationUrl = `${baseUrl}/verify?token=${verificationToken}`;
-  
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -112,6 +116,9 @@ export function generateVerificationEmailHTML(email: string, verificationToken: 
 /**
  * Generate unsubscribe link for emails
  */
-export function generateUnsubscribeLink(unsubscribeToken: string, baseUrl: string): string {
+export function generateUnsubscribeLink(
+  unsubscribeToken: string,
+  baseUrl: string
+): string {
   return `${baseUrl}/unsubscribe?token=${unsubscribeToken}`;
 }

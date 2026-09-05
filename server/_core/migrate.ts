@@ -1,17 +1,30 @@
-import mysql from 'mysql2/promise';
+import mysql from "mysql2/promise";
 
 export async function runMigrations() {
   const DATABASE_URL = process.env.DATABASE_URL;
 
   if (!DATABASE_URL) {
-    console.warn('⚠️  DATABASE_URL not set, skipping migrations');
+    console.warn("⚠️  DATABASE_URL not set, skipping migrations");
     return;
   }
 
-  console.log('🔄 Running database migrations...');
+  console.log("🔄 Running database migrations...");
 
   try {
     const connection = await mysql.createConnection(DATABASE_URL);
+    const ensureIndex = async (
+      table: string,
+      name: string,
+      columns: string
+    ) => {
+      try {
+        await connection.execute(
+          `CREATE INDEX \`${name}\` ON \`${table}\` (${columns})`
+        );
+      } catch (error: any) {
+        if (error?.code !== "ER_DUP_KEYNAME") throw error;
+      }
+    };
 
     // Create users table
     await connection.execute(`
@@ -91,10 +104,39 @@ export async function runMigrations() {
       )
     `);
 
+    // Add indexes separately so existing installations are upgraded safely.
+    await ensureIndex("articles", "articles_collected_at_idx", "`collectedAt`");
+    await ensureIndex("reports", "reports_report_date_idx", "`reportDate`");
+    await ensureIndex(
+      "collection_logs",
+      "collection_logs_report_id_idx",
+      "`reportId`"
+    );
+    await ensureIndex(
+      "collection_logs",
+      "collection_logs_created_at_idx",
+      "`createdAt`"
+    );
+    await ensureIndex(
+      "subscribers",
+      "subscribers_active_verified_idx",
+      "`active`, `verified`"
+    );
+    await ensureIndex(
+      "subscribers",
+      "subscribers_verification_token_idx",
+      "`verificationToken`"
+    );
+    await ensureIndex(
+      "subscribers",
+      "subscribers_unsubscribe_token_idx",
+      "`unsubscribeToken`"
+    );
+
     await connection.end();
-    console.log('✅ Database migrations completed successfully');
+    console.log("✅ Database migrations completed successfully");
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    console.error("❌ Migration failed:", error);
     throw error;
   }
 }

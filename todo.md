@@ -32,7 +32,6 @@
 - [ ] Analytics dashboard for article trends
 - [ ] Mobile app version
 
-
 ## Weekly Performance Review System (New Feature)
 
 - [x] Design performance metrics tracking system
@@ -42,7 +41,6 @@
 - [x] Design professional weekly performance email template
 - [x] Schedule weekly automation (every Monday 9:00 AM SGT)
 - [x] Test weekly performance review system
-
 
 ## Email Subscription Feature (New Feature)
 
@@ -56,14 +54,12 @@
 - [x] Add unsubscribe link to emails
 - [ ] Test subscription workflow end-to-end
 
-
 ## Daily Schedule Fix (Bug Report)
 
 - [x] Diagnose why daily 9:00 AM SGT schedule is not executing
 - [x] Fix the scheduled automation properly using Manus schedule tool
 - [x] Verify daily collection is running automatically
 - [ ] Test that emails are being sent daily (will verify tomorrow)
-
 
 ## Background Job Processing (Performance Fix)
 

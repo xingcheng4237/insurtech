@@ -1,9 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
-import { Newspaper, Home, RefreshCw, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import {
+  Newspaper,
+  Home,
+  RefreshCw,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+} from "lucide-react";
 import { Link } from "wouter";
 import { APP_TITLE } from "@/const";
 
@@ -12,11 +26,11 @@ export default function Jobs() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle2 className="h-5 w-5 text-green-600" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="h-5 w-5 text-red-600" />;
-      case 'running':
+      case "running":
         return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
       default:
         return <Clock className="h-5 w-5 text-gray-600" />;
@@ -24,17 +38,20 @@ export default function Jobs() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      completed: 'default',
-      failed: 'destructive',
-      running: 'secondary',
-      pending: 'outline',
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
+      completed: "default",
+      failed: "destructive",
+      running: "secondary",
+      pending: "outline",
     };
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>;
+    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
   };
 
   const formatDuration = (start?: Date, end?: Date) => {
-    if (!start) return 'N/A';
+    if (!start) return "N/A";
     const startTime = new Date(start).getTime();
     const endTime = end ? new Date(end).getTime() : Date.now();
     const duration = (endTime - startTime) / 1000;
@@ -67,8 +84,8 @@ export default function Jobs() {
               <Link href="/growth">
                 <Button variant="ghost">Growth</Button>
               </Link>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
                 onClick={() => refetch()}
               >
@@ -91,13 +108,13 @@ export default function Jobs() {
 
         {isLoading ? (
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
         ) : jobs && jobs.length > 0 ? (
           <div className="space-y-4">
-            {jobs.map((job) => (
+            {jobs.map(job => (
               <Card key={job.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -120,9 +137,9 @@ export default function Jobs() {
                     <div>
                       <div className="text-muted-foreground mb-1">Started</div>
                       <div className="font-medium">
-                        {job.startedAt 
-                          ? new Date(job.startedAt).toLocaleString() 
-                          : 'Not started'}
+                        {job.startedAt
+                          ? new Date(job.startedAt).toLocaleString()
+                          : "Not started"}
                       </div>
                     </div>
                     <div>
@@ -131,23 +148,27 @@ export default function Jobs() {
                         {formatDuration(job.startedAt, job.completedAt)}
                       </div>
                     </div>
-                    {job.status === 'completed' && job.result && (
+                    {job.status === "completed" && job.result && (
                       <>
                         <div>
-                          <div className="text-muted-foreground mb-1">Articles</div>
+                          <div className="text-muted-foreground mb-1">
+                            Articles
+                          </div>
                           <div className="font-medium">
                             {job.result.articleCount || 0}
                           </div>
                         </div>
                         <div>
-                          <div className="text-muted-foreground mb-1">Report ID</div>
+                          <div className="text-muted-foreground mb-1">
+                            Report ID
+                          </div>
                           <div className="font-medium">
-                            {job.result.reportId || 'N/A'}
+                            {job.result.reportId || "N/A"}
                           </div>
                         </div>
                       </>
                     )}
-                    {job.status === 'failed' && job.error && (
+                    {job.status === "failed" && job.error && (
                       <div className="col-span-2">
                         <div className="text-muted-foreground mb-1">Error</div>
                         <div className="font-medium text-red-600">
@@ -166,7 +187,8 @@ export default function Jobs() {
               <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No Jobs Yet</h3>
               <p className="text-muted-foreground mb-4">
-                Collection jobs will appear here when you trigger news collection
+                Collection jobs will appear here when you trigger news
+                collection
               </p>
               <Link href="/latest">
                 <Button>Go to Latest Report</Button>

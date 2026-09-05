@@ -1,7 +1,16 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, articles, reports, InsertArticle, InsertReport, collectionLogs, InsertCollectionLog } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  articles,
+  reports,
+  InsertArticle,
+  InsertReport,
+  collectionLogs,
+  InsertCollectionLog,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -56,8 +65,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -84,7 +93,11 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -93,11 +106,11 @@ export async function getUserByOpenId(openId: string) {
 export async function saveArticles(articlesData: InsertArticle[]) {
   const db = await getDb();
   if (!db || articlesData.length === 0) return;
-  
+
   try {
     await db.insert(articles).values(articlesData);
   } catch (error) {
-    console.error('[Database] Failed to save articles:', error);
+    console.error("[Database] Failed to save articles:", error);
     throw error;
   }
 }
@@ -105,12 +118,12 @@ export async function saveArticles(articlesData: InsertArticle[]) {
 export async function saveReport(reportData: InsertReport) {
   const db = await getDb();
   if (!db) return null;
-  
+
   try {
     const result = await db.insert(reports).values(reportData);
     return result;
   } catch (error) {
-    console.error('[Database] Failed to save report:', error);
+    console.error("[Database] Failed to save report:", error);
     throw error;
   }
 }
@@ -118,24 +131,36 @@ export async function saveReport(reportData: InsertReport) {
 export async function getLatestReport() {
   const db = await getDb();
   if (!db) return null;
-  
-  const result = await db.select().from(reports).orderBy(desc(reports.reportDate)).limit(1);
+
+  const result = await db
+    .select()
+    .from(reports)
+    .orderBy(desc(reports.reportDate))
+    .limit(1);
   return result.length > 0 ? result[0] : null;
 }
 
 export async function getAllReports(limit: number = 30) {
   const db = await getDb();
   if (!db) return [];
-  
-  const result = await db.select().from(reports).orderBy(desc(reports.reportDate)).limit(limit);
+
+  const result = await db
+    .select()
+    .from(reports)
+    .orderBy(desc(reports.reportDate))
+    .limit(limit);
   return result;
 }
 
 export async function getReportById(id: number) {
   const db = await getDb();
   if (!db) return null;
-  
-  const result = await db.select().from(reports).where(eq(reports.id, id)).limit(1);
+
+  const result = await db
+    .select()
+    .from(reports)
+    .where(eq(reports.id, id))
+    .limit(1);
   return result.length > 0 ? result[0] : null;
 }
 
@@ -143,10 +168,12 @@ export async function getReportById(id: number) {
 export async function createCollectionLog(log: InsertCollectionLog) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot create collection log: database not available");
+    console.warn(
+      "[Database] Cannot create collection log: database not available"
+    );
     return null;
   }
-  
+
   try {
     const result = await db.insert(collectionLogs).values(log);
     return result;
@@ -156,13 +183,18 @@ export async function createCollectionLog(log: InsertCollectionLog) {
   }
 }
 
-export async function getCollectionLogsByDateRange(startDate: Date, endDate: Date) {
+export async function getCollectionLogsByDateRange(
+  startDate: Date,
+  endDate: Date
+) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get collection logs: database not available");
+    console.warn(
+      "[Database] Cannot get collection logs: database not available"
+    );
     return [];
   }
-  
+
   try {
     const { and, gte, lte } = await import("drizzle-orm");
     const logs = await db
@@ -182,9 +214,12 @@ export async function getCollectionLogsByDateRange(startDate: Date, endDate: Dat
   }
 }
 
-export async function getWeeklyPerformanceStats(startDate: Date, endDate: Date) {
+export async function getWeeklyPerformanceStats(
+  startDate: Date,
+  endDate: Date
+) {
   const logs = await getCollectionLogsByDateRange(startDate, endDate);
-  
+
   if (logs.length === 0) {
     return {
       totalCollections: 0,
@@ -196,16 +231,20 @@ export async function getWeeklyPerformanceStats(startDate: Date, endDate: Date) 
       totalArticles: 0,
     };
   }
-  
+
   const successfulLogs = logs.filter(log => log.status === "success");
   const emailSentLogs = logs.filter(log => log.emailSent);
-  
+
   return {
     totalCollections: logs.length,
     successfulCollections: successfulLogs.length,
     failedCollections: logs.filter(log => log.status === "failed").length,
-    avgCollectionTime: successfulLogs.reduce((sum, log) => sum + log.collectionTime, 0) / successfulLogs.length,
-    avgArticleCount: successfulLogs.reduce((sum, log) => sum + log.articleCount, 0) / successfulLogs.length,
+    avgCollectionTime:
+      successfulLogs.reduce((sum, log) => sum + log.collectionTime, 0) /
+      successfulLogs.length,
+    avgArticleCount:
+      successfulLogs.reduce((sum, log) => sum + log.articleCount, 0) /
+      successfulLogs.length,
     emailSuccessRate: (emailSentLogs.length / logs.length) * 100,
     totalArticles: logs.reduce((sum, log) => sum + log.articleCount, 0),
   };

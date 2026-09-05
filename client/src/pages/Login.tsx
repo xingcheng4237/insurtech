@@ -1,6 +1,12 @@
 import { APP_TITLE } from "@/const";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Newspaper, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
@@ -36,9 +42,14 @@ function GoogleLogo() {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  access_denied: "Your email address is not authorized to access this application. Please contact the administrator.",
+  access_denied:
+    "Your email address is not authorized to access this application. Please contact the administrator.",
   auth_failed: "Authentication failed. Please try again.",
   oauth_error: "An error occurred during sign-in. Please try again.",
+  invalid_oauth_state:
+    "Your sign-in session expired or could not be verified. Please try again.",
+  unverified_email:
+    "Your Google account does not have a verified email address.",
   no_code: "Sign-in was cancelled. Please try again.",
 };
 
@@ -59,7 +70,10 @@ export default function Login() {
   // Parse error from query string
   const params = new URLSearchParams(window.location.search);
   const errorCode = params.get("error");
-  const errorMessage = errorCode ? (ERROR_MESSAGES[errorCode] ?? "An unexpected error occurred. Please try again.") : null;
+  const errorMessage = errorCode
+    ? (ERROR_MESSAGES[errorCode] ??
+      "An unexpected error occurred. Please try again.")
+    : null;
 
   const handleSignIn = () => {
     window.location.href = "/api/auth/google";
@@ -72,7 +86,9 @@ export default function Login() {
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex items-center gap-2">
             <Newspaper className="h-8 w-8 text-foreground" />
-            <span className="text-2xl font-semibold tracking-tight">{APP_TITLE}</span>
+            <span className="text-2xl font-semibold tracking-tight">
+              {APP_TITLE}
+            </span>
           </div>
           <p className="text-sm text-muted-foreground">
             AI-powered weekly insurtech intelligence

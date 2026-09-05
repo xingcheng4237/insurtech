@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Newspaper, History, TrendingUp, Target } from "lucide-react";
 import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { APP_TITLE } from "@/const";
@@ -41,8 +47,9 @@ export default function Home() {
             Your Weekly Insurtech Intelligence
           </h2>
           <p className="text-xl text-muted-foreground">
-            AI-powered weekly digest covering life &amp; healthcare insurance, digital platforms,
-            embedded insurance, AI/ML, regulatory changes, and funding across Asia-Pacific.
+            AI-powered weekly digest covering life &amp; healthcare insurance,
+            digital platforms, embedded insurance, AI/ML, regulatory changes,
+            and funding across Asia-Pacific.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/latest">
@@ -76,8 +83,9 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                GPT-4 analyzes news articles to provide executive summaries, key developments,
-                and strategic insights tailored for insurtech leaders.
+                GPT-4 analyzes news articles to provide executive summaries, key
+                developments, and strategic insights tailored for insurtech
+                leaders.
               </CardDescription>
             </CardContent>
           </Card>
@@ -89,8 +97,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Tracks 11 Asia-Pacific markets with 99+ search queries across Google News
-                and 7 premium RSS feeds for maximum coverage.
+                Tracks 11 Asia-Pacific markets with 99+ search queries across
+                Google News and 7 premium RSS feeds for maximum coverage.
               </CardDescription>
             </CardContent>
           </Card>
@@ -102,8 +110,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Automated weekly collection every Friday at 9:00 AM SGT with email delivery
-                and web access to current and historical reports.
+                Automated weekly collection every Friday at 9:00 AM SGT with
+                email delivery and web access to current and historical reports.
               </CardDescription>
             </CardContent>
           </Card>
@@ -115,8 +123,9 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Articles are auto-flagged for relevance to wellness insurance, embedded
-                insurance, and APAC market transformation — your strategic priorities.
+                Articles are auto-flagged for relevance to wellness insurance,
+                embedded insurance, and APAC market transformation — your
+                strategic priorities.
               </CardDescription>
             </CardContent>
           </Card>
@@ -126,7 +135,10 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>Insurtech News Tracker &bull; Powered by AI &bull; {new Date().getFullYear()}</p>
+          <p>
+            Insurtech News Tracker &bull; Powered by AI &bull;{" "}
+            {new Date().getFullYear()}
+          </p>
         </div>
       </footer>
     </div>

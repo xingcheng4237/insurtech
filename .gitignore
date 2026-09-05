@@ -40,6 +40,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Runtime data
+.manus/
+sanity_check_live_findings.md
+INSURTECH_REPOSITORY_SANITY_CHECK_*.md
 pids
 *.pid
 *.seed

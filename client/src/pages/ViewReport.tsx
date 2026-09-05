@@ -8,7 +8,7 @@ import { APP_TITLE } from "@/const";
 export default function ViewReport() {
   const [, params] = useRoute("/report/:id");
   const reportId = params?.id ? parseInt(params.id, 10) : 0;
-  
+
   const { data: report, isLoading } = trpc.news.byId.useQuery({ id: reportId });
 
   return (
@@ -51,7 +51,7 @@ export default function ViewReport() {
           </div>
         ) : report ? (
           <div className="w-full">
-            <div 
+            <div
               className="report-html-content bg-white"
               dangerouslySetInnerHTML={{ __html: report.htmlContent }}
             />

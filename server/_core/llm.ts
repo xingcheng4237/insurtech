@@ -19,7 +19,12 @@ export type FileContent = {
   type: "file_url";
   file_url: {
     url: string;
-    mime_type?: "audio/mpeg" | "audio/wav" | "application/pdf" | "audio/mp4" | "video/mp4" ;
+    mime_type?:
+      | "audio/mpeg"
+      | "audio/wav"
+      | "application/pdf"
+      | "audio/mp4"
+      | "video/mp4";
   };
 };
 
@@ -287,7 +292,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   // Use gpt-4o-mini if OpenAI API key is set, otherwise use Gemini
   const model = process.env.OPENAI_API_KEY ? "gpt-4o-mini" : "gemini-2.5-flash";
-  
+
   const payload: Record<string, unknown> = {
     model,
     messages: messages.map(normalizeMessage),
@@ -309,7 +314,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   if (!process.env.OPENAI_API_KEY) {
     payload.max_tokens = 32768;
     payload.thinking = {
-      "budget_tokens": 128
+      budget_tokens: 128,
     };
   } else {
     // OpenAI models use different max_tokens

@@ -8,6 +8,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AuthGuard from "./_core/components/AuthGuard";
+import AdminGuard from "./_core/components/AdminGuard";
 import Home from "./pages/Home";
 import LatestReport from "./pages/LatestReport";
 import ReportHistory from "./pages/ReportHistory";
@@ -48,12 +49,16 @@ function Router() {
       </Route>
       <Route path={"/jobs"}>
         <AuthGuard>
-          <Jobs />
+          <AdminGuard>
+            <Jobs />
+          </AdminGuard>
         </AuthGuard>
       </Route>
       <Route path={"/schedule"}>
         <AuthGuard>
-          <Schedule />
+          <AdminGuard>
+            <Schedule />
+          </AdminGuard>
         </AuthGuard>
       </Route>
       <Route path={"/404"} component={NotFound} />
