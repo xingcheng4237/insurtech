@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express from "express";
+import express, { type Express } from "express";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import { createServer } from "http";
@@ -32,10 +32,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-async function startServer() {
-  // Run database migrations on startup
-  await runMigrations();
-
+/**
+ * Builds the Express application without opening a port or performing database
+ * migrations. This keeps route registration reusable for integration tests.
+ */
+export function createApp(): Express {
   const app = express();
   app.set("trust proxy", 1);
 
@@ -81,8 +82,6 @@ async function startServer() {
   app.use("/api/auth", authRateLimit);
   app.use("/api/trpc/subscription.subscribe", subscriptionRateLimit);
 
-  const server = createServer(app);
-  // Health check endpoint for Railway
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
   });
@@ -90,13 +89,9 @@ async function startServer() {
   // This application does not receive file uploads; keep public payloads bounded.
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ limit: "1mb", extended: true }));
-  // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
-  // Google OAuth routes
   registerGoogleAuthRoutes(app);
-  // Cron endpoints for scheduled tasks
   app.use(cronRouter);
-  // tRPC API
   app.use(
     "/api/trpc",
     createExpressMiddleware({
@@ -104,7 +99,15 @@ async function startServer() {
       createContext,
     })
   );
-  // development mode uses Vite, production mode uses static files
+
+  return app;
+}
+
+async function startServer() {
+  await runMigrations();
+
+  const app = createApp();
+  const server = createServer(app);
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
@@ -124,5 +127,6 @@ async function startServer() {
   });
 }
 
-startServer().catch(console.error);
-// Force rebuild 1771430225
+if (process.env.VITEST !== "true") {
+  startServer().catch(console.error);
+}

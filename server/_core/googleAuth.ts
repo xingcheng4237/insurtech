@@ -162,7 +162,7 @@ export function registerGoogleAuthRoutes(app: Express) {
     const error =
       typeof req.query.error === "string" ? req.query.error : undefined;
     const cookieOptions = getOAuthCookieOptions(req);
-    const clearOAuthCookieOptions = { ...cookieOptions, maxAge: -1 };
+    const { maxAge: _maxAge, ...clearOAuthCookieOptions } = cookieOptions;
 
     if (error) {
       res.clearCookie(OAUTH_STATE_COOKIE, clearOAuthCookieOptions);
