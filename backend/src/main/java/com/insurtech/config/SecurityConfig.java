@@ -13,14 +13,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Baseline security configuration.
+ * Security configuration — fail-closed by default.
  *
- * Without an explicit SecurityFilterChain, spring-boot-starter-security
- * secures EVERY endpoint with the auto-generated default user, which made
- * /api/v1/health return 401 and failed the Railway healthcheck.
+ * Only explicitly public endpoints (health checks) are reachable without
+ * authentication. Everything else requires authentication; until the
+ * OAuth2/JWT resource-server module lands, that means business endpoints
+ * return 401 — the safe failure mode (fail closed, not open).
  *
- * TODO(opsx authentication change): replace permitAll with the OAuth2/JWT
- * resource-server rules once the auth module lands.
+ * TODO(opsx authentication change): add oauth2ResourceServer JWT rules and
+ * per-endpoint authorization once the auth module ships.
  */
 @Configuration
 @EnableWebSecurity
@@ -35,28 +36,32 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/health", "/actuator/health").permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             );
         return http.build();
     }
 
     /**
-     * CORS source consumed by the security filter chain. Origin patterns match
-     * WebConfig; defined here because Spring Security needs a
-     * CorsConfigurationSource bean, not just the MVC registry.
+     * CORS source for the security filter chain.
+     *
+     * Exact origins only — no wildcard tenants. allowCredentials stays false
+     * until cookie-based auth exists (see OWASP review 2026-09-06, A01).
+     * This is the single source of truth for CORS; do not re-add an MVC
+     * registry copy (WebConfig was removed to prevent drift).
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
+        config.setAllowedOrigins(List.of(
             "http://localhost:3000",
             "http://localhost:5173",
             "https://www.chengxing.org",
-            "https://*.up.railway.app"
+            "https://insurtech.chengxing.org",
+            "https://insurtech-web-production-53c3.up.railway.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
         return source;

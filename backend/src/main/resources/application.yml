@@ -23,10 +23,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
 
 logging:
   level:
