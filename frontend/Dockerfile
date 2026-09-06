@@ -24,4 +24,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 #   build time and skip the proxy entirely.
 ENV BACKEND_URL=http://backend:8080
 EXPOSE 80
-CMD ["/bin/sh", "-c", "envsubst '${BACKEND_URL}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# Railway injects $PORT and routes traffic to it; default to 80 locally.
+CMD ["/bin/sh", "-c", ": ${PORT:=80} && export PORT && envsubst '${BACKEND_URL} ${PORT}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
