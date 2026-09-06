@@ -56,6 +56,7 @@ public class SecurityConfig {
             "http://localhost:3000",
             "http://localhost:5173",
             "https://www.chengxing.org",
+            "https://insurtech.chengxing.org",
             "https://insurtech-web-production-53c3.up.railway.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
