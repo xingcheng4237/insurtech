@@ -14,7 +14,10 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                    .allowedOrigins(
+                    // allowedOriginPatterns (not allowedOrigins) is required for
+                    // wildcard domains like *.up.railway.app and works with
+                    // allowCredentials(true).
+                    .allowedOriginPatterns(
                         "http://localhost:3000",
                         "http://localhost:5173",
                         "https://www.chengxing.org",

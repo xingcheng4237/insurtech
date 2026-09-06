@@ -79,7 +79,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .pnpm-store/
-package-lock.json
+# package-lock.json is COMMITTED: frontend/Dockerfile uses `npm ci`
 yarn.lock
 pnpm-lock.yaml
 
@@ -130,6 +130,8 @@ temp/
 
 # ==========================
 # Railway / Cloudflare local
+# .railway/  # Keep for IaC config (.railway/railway.ts)
+
 # ==========================
 .railway/
 .wrangler/
